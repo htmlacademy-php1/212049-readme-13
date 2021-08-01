@@ -1,7 +1,7 @@
 <?php
 $is_auth = rand(0, 1);
 
-$user_name = ''; // укажите здесь ваше имя
+$user_name = 'Yuriy'; // укажите здесь ваше имя
 $cards = [
     ['quote' => 'Цитата', 'type' => 'post-quote', 'content' => 'Мы в жизни любим только раз, а после ищем лишь похожих', 'name' => 'Лариса',  'avatar' => 'userpic-larisa-small.jpg'],
     ['quote' => 'Игра престолов', 'type' => 'post-text', 'content' => 'Не могу дождаться начала финального сезона своего любимого сериала!', 'name' => 'Владик',  'avatar' => 'userpic.jpg'],
@@ -47,7 +47,7 @@ $cards = [
             </div>
         </form>
         <div class="header__nav-wrapper">
-            <!-- здесь должен быть PHP код, который показывает следующий тег по условию -->
+            <?php if($is_auth): ?>
             <nav class="header__nav">
                 <ul class="header__my-nav">
                     <li class="header__my-page header__my-page--popular">
@@ -117,6 +117,7 @@ $cards = [
                     </li>
                 </ul>
             </nav>
+            <?php endif; ?>
         </div>
     </div>
 </header>
