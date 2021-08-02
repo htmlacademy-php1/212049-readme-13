@@ -38,6 +38,24 @@ $cards = [
         'avatar' => 'userpic.jpg',
     ],
 ];
+
+function truncateText($text, $maxLength = 300) {
+    $counter = 0;
+    $tempArr = [];
+    $words = explode(' ', $text);
+
+    foreach ($words as $word) {
+        $counter += strlen($word);
+        $tempArr[] = $word;
+
+        if($counter > $maxLength) {
+            $truncatedText = implode(' ', $tempArr);
+            return $truncatedText . '<a class="post-text__more-link" href="#">Читать далее</a>';
+        }
+    }
+
+    return $text;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -254,7 +272,7 @@ $cards = [
                             </blockquote>
                         <?php break; ?>
                         <?php case 'post-text': ?>
-                            <p><?= $card['content'] ?></p>
+                            <p><?= truncateText($card['content']) ?></p>
                         <?php break; ?>
                         <?php case 'post-photo': ?>
                             <div class="post-photo__image-wrapper">
