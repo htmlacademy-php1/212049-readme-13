@@ -8,30 +8,35 @@ $cards = [
         'type' => 'post-quote', 
         'content' => 'Мы в жизни любим только раз, а после ищем лишь похожих', 
         'name' => 'Лариса',  
-        'avatar' => 'userpic-larisa-small.jpg',],
+        'avatar' => 'userpic-larisa-small.jpg',
+    ],
     [
         'quote' => 'Игра престолов', 
         'type' => 'post-text', 
         'content' => 'Не могу дождаться начала финального сезона своего любимого сериала!', 
         'name' => 'Владик',  
-        'avatar' => 'userpic.jpg',],
+        'avatar' => 'userpic.jpg',
+    ],
     [
         'quote' => 'Наконец, обработал фотки!', 
         'type' => 'post-photo', 'content' => 'rock-medium.jpg', 
         'name' => 'Виктор',  
-        'avatar' => 'userpic-mark.jpg',],
+        'avatar' => 'userpic-mark.jpg',
+    ],
     [
         'quote' => 'Моя мечта', 
         'type' => 'post-photo', 
         'content' => 'coast-medium.jpg', 
         'name' => 'Лариса',  
-        'avatar' => 'userpic-larisa-small.jpg',],
+        'avatar' => 'userpic-larisa-small.jpg',
+    ],
     [
         'quote' => 'Лучшие курсы', 
         'type' => 'post-link', 
         'content' => 'www.htmlacademy.ru ', 
         'name' => 'Владик',  
-        'avatar' => 'userpic.jpg',],
+        'avatar' => 'userpic.jpg',
+    ],
 ];
 ?>
 <!DOCTYPE html>
@@ -99,7 +104,7 @@ $cards = [
                             </div>
                             <div class="header__profile-name">
                                 <span>
-                                    <!--здесь должно быть имя пользователя-->
+                                    <?= $user_name ?>
                                 </span>
                                 <svg class="header__link-arrow" width="10" height="6">
                                     <use xlink:href="#icon-arrow-right-ad"></use>
