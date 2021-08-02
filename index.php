@@ -39,22 +39,33 @@ $cards = [
     ],
 ];
 
+function addLink($item) {
+    $link = '<a class="post-text__more-link" href="#">Читать далее</a>';
+
+    return "$item $link";
+}
+
 function truncateText($text, $maxLength = 300) {
     $counter = 0;
     $tempArr = [];
+
+    if (mb_strlen($text) <= $maxLength) {
+        return $text;
+    }
+
     $words = explode(' ', $text);
 
     foreach ($words as $word) {
-        $counter += strlen($word);
-        $tempArr[] = $word;
+        $counter += mb_strlen($word);
 
-        if($counter > $maxLength) {
-            $truncatedText = implode(' ', $tempArr);
-            return $truncatedText . '<a class="post-text__more-link" href="#">Читать далее</a>';
+        if ($maxLength > $counter) {
+             $tempArr[] = $word;
         }
     }
 
-    return $text;
+    $truncatedText = implode(' ', $tempArr);
+
+    return  addLink($truncatedText);
 }
 ?>
 <!DOCTYPE html>
