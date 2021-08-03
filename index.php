@@ -39,12 +39,13 @@ $cards = [
     ],
 ];
 
-function truncateText($text, $maxLength = 300) {
+function truncateText($text, $maxLength = 10) {
     $counter = 0;
     $tempArr = [];
-    $isTruncated = false;
 
     if (mb_strlen($text) <= $maxLength) {
+        $isTruncated = false;
+
         return [$text, $isTruncated];
     }
 
@@ -53,11 +54,10 @@ function truncateText($text, $maxLength = 300) {
     foreach ($words as $word) {
         $counter += mb_strlen($word);
 
-        if ($counter < $maxLength) {
-             $tempArr[] = $word;
-        } else {
-            break;
+        if ($counter >= $maxLength) {
+             break;
         }
+        $tempArr[] = $word;
     }
 
     $truncatedText = implode(' ', $tempArr);
@@ -282,8 +282,8 @@ function truncateText($text, $maxLength = 300) {
                         <?php break; ?>
                         <?php case 'post-text': ?>
                             <p>
-                                <?php $res = truncateText($card['content']); ?>
-                                <?= !$res[1] ? $res[0] : $res[0] . '<a class="post-text__more-link" href="#">Читать далее</a>'; ?>
+                                <?php list($text, $link) = truncateText($card['content']); ?>
+                                <?= !$link ? $text : $text . '<a class="post-text__more-link" href="#">Читать далее</a>'; ?>
                             </p>
                         <?php break; ?>
                         <?php case 'post-photo': ?>
