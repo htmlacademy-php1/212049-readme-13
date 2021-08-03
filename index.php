@@ -44,7 +44,6 @@ function truncateText($text, $maxLength = 300) {
     $tempArr = [];
 
     if (mb_strlen($text) <= $maxLength) {
-
         return [$text, false];
     }
 
@@ -282,8 +281,8 @@ function truncateText($text, $maxLength = 300) {
                             <p>
                                 <?php list($text, $isTruncated) = truncateText($card['content']); ?>
                                 <?php 
-                                    if (!$isTruncated): echo $text;
-                                    else: echo $text;
+                                    echo $text;
+                                    if ($isTruncated): 
                                 ?>
                                 <a class="post-text__more-link" href="#">Читать далее</a>
                                 <?php endif; ?>
