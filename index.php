@@ -39,18 +39,13 @@ $cards = [
     ],
 ];
 
-function addLink($item) {
-    $link = '<a class="post-text__more-link" href="#">Читать далее</a>';
-
-    return "$item $link";
-}
-
 function truncateText($text, $maxLength = 300) {
     $counter = 0;
     $tempArr = [];
+    $isTruncated = false;
 
     if (mb_strlen($text) <= $maxLength) {
-        return $text;
+        return [$text, $isTruncated];
     }
 
     $words = explode(' ', $text);
@@ -58,14 +53,17 @@ function truncateText($text, $maxLength = 300) {
     foreach ($words as $word) {
         $counter += mb_strlen($word);
 
-        if ($maxLength > $counter) {
+        if ($counter < $maxLength) {
              $tempArr[] = $word;
+        } else {
+            break;
         }
     }
 
     $truncatedText = implode(' ', $tempArr);
+    $isTruncated = true;
 
-    return  addLink($truncatedText);
+    return  [$truncatedText, $isTruncated];
 }
 ?>
 <!DOCTYPE html>
@@ -283,7 +281,10 @@ function truncateText($text, $maxLength = 300) {
                             </blockquote>
                         <?php break; ?>
                         <?php case 'post-text': ?>
-                            <p><?= truncateText($card['content']) ?></p>
+                            <p>
+                                <?php $res = truncateText($card['content']); ?>
+                                <?= !$res[1] ? $res[0] : $res[0] . '<a class="post-text__more-link" href="#">Читать далее</a>'; ?>
+                            </p>
                         <?php break; ?>
                         <?php case 'post-photo': ?>
                             <div class="post-photo__image-wrapper">
