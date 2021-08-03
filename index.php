@@ -279,8 +279,8 @@ function truncateText($text, $maxLength = 300) {
                         <?php break; ?>
                         <?php case 'post-text': ?>
                             <p>
-                                <?php list($text, $isTruncated) = truncateText($card['content']); ?>
                                 <?php 
+                                    list($text, $isTruncated) = truncateText($card['content']);
                                     echo $text;
                                     if ($isTruncated): 
                                 ?>
