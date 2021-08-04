@@ -1,5 +1,5 @@
 <?php
-require_once('helpers.php');
+require_once 'helpers.php';
 
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; // укажите здесь ваше имя
@@ -66,7 +66,6 @@ function truncateText($text, $maxLength = 300) {
 
 $pageContent = include_template('main.php', ['cards' => $cards]);
 
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'is_auth' => $is_auth, 'user_name' => 'Yuriy', 'title' => 'Giftube']);
+$layoutContent = include_template('layout.php', ['content' => $pageContent, 'is_auth' => $is_auth, 'user_name' => 'Yuriy', 'title' => 'readme: популярное']);
 
 print($layoutContent);
-?>

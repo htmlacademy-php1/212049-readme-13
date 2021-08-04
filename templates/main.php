@@ -87,14 +87,14 @@
         <?php foreach ($cards as $card): ?>
             <article class="popular__post post <?= $card['type'] ?>">
                 <header class="post__header">
-                    <h2><?= $card['quote']?></h2>
+                    <h2><?= htmlspecialchars($card['quote'])?></h2>
                 </header>
                 <div class="post__main">
                     <?php switch($card['type']): 
                     case 'post-quote':?>
                         <blockquote>
                             <p>
-                                <?= $card['content'] ?>
+                                <?= htmlspecialchars($card['content']) ?>
                             </p>
                             <cite>Неизвестный Автор</cite>
                         </blockquote>
@@ -103,7 +103,7 @@
                         <p>
                             <?php 
                                 list($text, $isTruncated) = truncateText($card['content']);
-                                echo $text;
+                                echo htmlspecialchars($text);
                                 if ($isTruncated): 
                             ?>
                             <a class="post-text__more-link" href="#">Читать далее</a>
@@ -123,10 +123,10 @@
                                         <img src="https://www.google.com/s2/favicons?domain=vitadental.ru" alt="Иконка">
                                     </div>
                                     <div class="post-link__info">
-                                        <h3><?= $card['quote'] ?></h3>
+                                        <h3><?= htmlspecialchars($card['quote']) ?></h3>
                                     </div>
                                 </div>
-                                <span><?= $card['content']?></span>
+                                <span><?= htmlspecialchars($card['content']) ?></span>
                             </a>
                         </div>
                     <?php break; ?>     
@@ -140,7 +140,7 @@
                                 <img class="post__author-avatar" src="img/<?= $card['avatar'] ?>" alt="Аватар пользователя">
                             </div>
                             <div class="post__info">
-                                <b class="post__author-name"><?= $card['name'] ?></b>
+                                <b class="post__author-name"><?= htmlspecialchars($card['name']) ?></b>
                                 <time class="post__time" datetime="">дата</time>
                             </div>
                         </a>
