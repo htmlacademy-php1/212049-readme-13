@@ -8,7 +8,6 @@ $oneHour = 3600;
 $oneDay = 86400;
 $oneWeek = 604800;
 $fiveWeeks = 2678400;
-
 $cards = [
     [
         'quote' => 'Цитата', 
