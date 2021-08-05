@@ -3,11 +3,12 @@ require_once 'helpers.php';
 
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; // укажите здесь ваше имя
-$oneMin = 60;
-$oneHour = 3600;
-$oneDay = 86400;
-$oneWeek = 604800;
-$fiveWeeks = 2678400;
+define('MINUTE', 60);
+define('HOUR', 60 * MINUTE);
+define('DAY', 24 * HOUR);
+define('WEEK', 7 * DAY);
+define('FIVEWEEKS', 5 * WEEK);
+
 $cards = [
     [
         'quote' => 'Цитата', 
@@ -75,29 +76,29 @@ foreach ($cards as $key => &$card) {
     $card['date']['titleTime'] = date('d.m.Y H:i', strtotime($date));
     $diff = strtotime('now') - strtotime($card['date']['abs']);
    
-    switch ($diff) {
-        case ($diff < $oneHour):
-            $num = ceil($diff / $oneMin);
+    switch (true) {
+        case ($diff < HOUR):
+            $num = ceil($diff / MINUTE);
             $res = get_noun_plural_form($num, 'минута', 'минуты', 'минут');
             $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
-        case ($oneHour <= $diff && $diff < $oneDay):
-            $num = ceil($diff / $oneHour);
+        case ($diff >= HOUR  && $diff < DAY):
+            $num = ceil($diff / HOUR);
             $res = get_noun_plural_form($num, 'час', 'часа', 'часов');
             $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
-        case ($oneDay <= $diff && $diff < $oneWeek):
-            $num = ceil($diff / $oneDay);
+        case ($diff >= DAY && $diff < WEEK):
+            $num = ceil($diff / DAY);
             $res = get_noun_plural_form($num, 'день', 'дня', 'дней');
             $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
-        case ($oneWeek <= $diff && $diff < $fiveWeeks):
-            $num = ceil($diff / $oneWeek);
+        case ($diff >= WEEK&& $diff < FIVEWEEKS):
+            $num = ceil($diff / WEEK);
             $res = get_noun_plural_form($num, 'неделя', 'недели', 'недель');
             $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
-        case ($diff >= $fiveWeeks):
-            $num = ceil($diff / $fiveWeeks);
+        case ($diff >= FIVEWEEKS):
+            $num = ceil($diff / FIVEWEEKS);
             $res = get_noun_plural_form($num, 'месяц', 'месяца', 'месяцев');
             $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
