@@ -141,7 +141,7 @@
                             </div>
                             <div class="post__info">
                                 <b class="post__author-name"><?= htmlspecialchars($card['name']) ?></b>
-                                <time class="post__time" datetime="">дата</time>
+                                <time class="post__time" datetime="<?= $card['date']['abs'] ?>" title="<?= $card['date']['titleTime'] ?>"><?= $card['date']['rel'] ?></time>
                             </div>
                         </a>
                     </div>
