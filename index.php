@@ -77,29 +77,29 @@ foreach ($cards as $key => &$card) {
    
     switch ($diff) {
         case ($diff < $oneHour):
-            $num = $diff / $oneMin;
+            $num = ceil($diff / $oneMin);
             $res = get_noun_plural_form($num, 'минута', 'минуты', 'минут');
-            $card['date']['rel'] = ceil($num) . ' ' . $res . ' назад';
+            $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($oneHour <= $diff && $diff < $oneDay):
-            $num = $diff / $oneHour;
+            $num = ceil($diff / $oneHour);
             $res = get_noun_plural_form($num, 'час', 'часа', 'часов');
-            $card['date']['rel'] = ceil($num) . ' ' . $res . ' назад';
+            $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($oneDay <= $diff && $diff < $oneWeek):
-            $num = $diff / $oneDay;
+            $num = ceil($diff / $oneDay);
             $res = get_noun_plural_form($num, 'день', 'дня', 'дней');
-            $card['date']['rel'] = ceil($num) . ' ' . $res . ' назад';
+            $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($oneWeek <= $diff && $diff < $fiveWeeks):
-            $num = $diff / $oneWeek;
+            $num = ceil($diff / $oneWeek);
             $res = get_noun_plural_form($num, 'неделя', 'недели', 'недель');
-            $card['date']['rel'] = ceil($num) . ' ' . $res . ' назад';
+            $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($diff >= $fiveWeeks):
-            $num = $diff / $fiveWeeks;
+            $num = ceil($diff / $fiveWeeks);
             $res = get_noun_plural_form($num, 'месяц', 'месяца', 'месяцев');
-            $card['date']['rel'] = ceil($num) . ' ' . $res . ' назад';
+            $card['date']['rel'] = $num . ' ' . $res . ' назад';
             break;
     }
 }
