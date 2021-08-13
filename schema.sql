@@ -33,7 +33,7 @@ CREATE TABLE posts (
 	image VARCHAR(2048),
 	video VARCHAR(2048),
 	link VARCHAR(2048),
-	num_of_views INT,
+	num_of_views INT NOT NULL,
 	user_id INT NOT NULL,
 	content_type_id INT NOT NULL,
 	FOREIGN KEY (user_id)  REFERENCES users (id),
@@ -78,7 +78,7 @@ CREATE TABLE subscriptions (
 	FOREIGN KEY (subscription_id)  REFERENCES users (id)
 );
 
-CREATE TABLE hashtags_in_posts (
+CREATE TABLE hashtags_posts (
 	hashtag_id INT NOT NULL,
 	post_id INT NOT NULL,
 	FOREIGN KEY (hashtag_id)  REFERENCES hashtags (id),
