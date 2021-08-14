@@ -42,7 +42,7 @@ CREATE TABLE posts (
 
 CREATE INDEX title_index ON posts(title);
 
-CREATE INDEX content_index ON posts(content);
+CREATE INDEX content_index ON posts(content(255));
 
 CREATE TABLE comments (
 	id INT AUTO_INCREMENT PRIMARY KEY,
