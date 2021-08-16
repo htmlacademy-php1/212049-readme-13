@@ -79,6 +79,18 @@ VALUES
 		5
 	);
 
+-- Добавить лайк к посту
+INSERT INTO likes VALUES
+					(1, 2),
+					(1, 2),
+					(1, 2),
+					(2, 3),
+					(2, 3),
+					(3, 1);
+
+-- Подписаться на пользователя
+INSERT INTO subscriptions VALUES (1, 2);
+
 -- Добавляем три комментария
 INSERT INTO comments
 	(comment, user_id, post_id)
@@ -89,15 +101,11 @@ VALUES
 
 -- Запросы для этих действий
 -- Получить список постов с сортировкой по популярности и вместе с именами авторов и типом контента
-SELECT results.post_id, content, login, content_types.type, results.likes_num FROM (
-	SELECT COUNT(post_id) as likes_num, post_id FROM likes
-	GROUP BY post_id
-) AS results
-	RIGHT JOIN posts ON results.post_id = posts.user_id
-	LEFT JOIN users ON users.id = posts.user_id
-	LEFT JOIN content_types ON content_types.id = posts.content_type_id
-	GROUP BY post_id
-	ORDER BY likes_num DESC;
+SELECT likes.post_id, content, COUNT(*) AS num_likes, login, type FROM posts
+	JOIN likes ON likes.post_id = posts.id
+	JOIN users ON users.id = posts.user_id
+	JOIN content_types ON content_types.id = posts.content_type_id
+	GROUP BY likes.post_id;
 
 -- Получить список постов для конкретного пользователя
 SELECT content, login FROM posts
@@ -108,14 +116,3 @@ SELECT content, login FROM posts
 SELECT comment, login FROM comments
 	INNER JOIN users ON users.id = comments.user_id
 	WHERE post_id = 2;
-
--- Добавить лайк к посту
-INSERT INTO likes VALUES
-					(1, 2),
-					(1, 2),
-					(1, 2),
-					(2, 3),
-					(3, 2);
-
--- Подписаться на пользователя
-INSERT INTO subscriptions VALUES (1, 2);
