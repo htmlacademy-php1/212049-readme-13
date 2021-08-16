@@ -3,6 +3,7 @@ USE readme;
 -- Добавление информации в БД
 -- Записываем данные (список типов контента для поста)
 INSERT INTO content_types
+	(type, class_name)
 VALUES
 	('Текст', 'text'),
 	('Цитата', 'quote'),
@@ -12,6 +13,7 @@ VALUES
 
 -- Добавляем пользователей
 INSERT INTO users
+	(email, login, password)
 VALUES
 	('larisa@gmail.com', 'Лариса', 'qwerty'),
 	('vladik@gmail.com', 'Владик', '12345'),
@@ -19,14 +21,15 @@ VALUES
 
 -- Добавляем существующий список постов
 INSERT INTO posts
+	(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id)
 VALUES
-	( 
+	(
 		'Цитата', 
 		'Мы в жизни любим только раз, а после ищем лишь похожих', 
-		'Лариса', 
-		'', 
-		'', 
-		'', 
+		'Лариса',
+		'',
+		'',
+		'',
 		11,
 		1, 
 		2
@@ -35,9 +38,9 @@ VALUES
 		'Игра престолов', 
 		'Не могу дождаться начала финального сезона своего любимого сериала!', 
 		'Владик', 
-		'', 
-		'', 
-		'', 
+		'',
+		'',
+		'',
 		22,
 		2, 
 		2
@@ -63,7 +66,6 @@ VALUES
 		22,
 		1,
 		3
-
 	),
 	(
 		'Лучшие курсы',
@@ -79,6 +81,7 @@ VALUES
 
 -- Добавляем три комментария
 INSERT INTO comments
+	(comment, user_id, post_id)
 VALUES
 	('Отличный сериал!', 1, 2),
 	('Сериал бомба!', 3, 2),
