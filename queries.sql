@@ -101,12 +101,14 @@ VALUES
 
 -- Запросы для этих действий
 -- Получить список постов с сортировкой по популярности и вместе с именами авторов и типом контента
-SELECT p.id, content, COUNT(post_id) as likes_num, login, type FROM likes AS l
-     RIGHT JOIN posts  AS p ON p.id = l.post_id
-     RIGHT JOIN content_types AS ct ON ct.id = p.content_type_id
-     RIGHT JOIN users AS u ON u.id = p.user_id
-     GROUP BY p.id
-     ORDER BY likes_num DESC;
+SELECT posts.id, content, num_likes, login, type FROM posts
+	LEFT JOIN (
+		SELECT post_id, COUNT(post_id) AS num_likes FROM likes
+		GROUP BY post_id
+	) AS result ON posts.id = result.post_id
+	RIGHT JOIN content_types ON content_types.id = posts.content_type_id
+	RIGHT JOIN users ON users.id = posts.user_id
+ 	ORDER BY num_likes DESC;
 
 -- Получить список постов для конкретного пользователя
 SELECT content, login FROM posts
