@@ -100,15 +100,17 @@ VALUES
 	('Шикарная цитата!', 2, 1);
 
 -- Запросы для этих действий
--- Получить список постов с сортировкой по популярности и вместе с именами авторов и типом контента
-SELECT posts.id, content, num_likes, login, type FROM posts
-	LEFT JOIN (
-		SELECT post_id, COUNT(post_id) AS num_likes FROM likes
-		GROUP BY post_id
-	) AS result ON posts.id = result.post_id
-	RIGHT JOIN content_types ON content_types.id = posts.content_type_id
-	RIGHT JOIN users ON users.id = posts.user_id
- 	ORDER BY num_likes DESC;
+-- Получить список постов с сортировкой по популярности вместе с именами авторов и типом контента
+SELECT
+	posts.id,
+	content,
+	users.login,
+	content_types.type,
+	(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count
+FROM posts
+JOIN users ON posts.user_id = users.id
+JOIN content_types ON posts.content_type_id = content_types.id
+ORDER BY likes_count DESC;
 
 -- Получить список постов для конкретного пользователя
 SELECT content, login FROM posts
