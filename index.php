@@ -9,42 +9,34 @@ define('DAY', 24 * HOUR);
 define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
 
-$cards = [
-    [
-        'quote' => 'Цитата', 
-        'type' => 'post-quote', 
-        'content' => 'Мы в жизни любим только раз, а после ищем лишь похожих', 
-        'name' => 'Лариса',  
-        'avatar' => 'userpic-larisa-small.jpg',
-    ],
-    [
-        'quote' => 'Игра престолов', 
-        'type' => 'post-text', 
-        'content' => 'Не могу дождаться начала финального сезона своего любимого сериала!', 
-        'name' => 'Владик',  
-        'avatar' => 'userpic.jpg',
-    ],
-    [
-        'quote' => 'Наконец, обработал фотки!', 
-        'type' => 'post-photo', 'content' => 'rock-medium.jpg', 
-        'name' => 'Виктор',  
-        'avatar' => 'userpic-mark.jpg',
-    ],
-    [
-        'quote' => 'Моя мечта', 
-        'type' => 'post-photo', 
-        'content' => 'coast-medium.jpg', 
-        'name' => 'Лариса',  
-        'avatar' => 'userpic-larisa-small.jpg',
-    ],
-    [
-        'quote' => 'Лучшие курсы', 
-        'type' => 'post-link', 
-        'content' => 'www.htmlacademy.ru ', 
-        'name' => 'Владик',  
-        'avatar' => 'userpic.jpg',
-    ],
-];
+$con = mysqli_connect('localhost', 'root', '', 'readme');
+
+ if (!$con) {
+       die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
+  } else {
+        $query_types = 'SELECT * FROM content_types';
+        $query_posts = 'SELECT posts.*, content, users.login, class_name, avatar,' .
+                            '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
+                        ' FROM posts' .
+                        ' JOIN users ON posts.user_id = users.id' .
+                        ' JOIN content_types ON posts.content_type_id = content_types.id' .
+                        ' ORDER BY likes_count DESC;';
+
+        $types = mysqli_query($con, $query_types);
+        $posts = mysqli_query($con, $query_posts);
+
+        if (!$types) {
+            die('Ошибка получения данных: ' . mysqli_error($con));
+        } else {
+            $types = mysqli_fetch_all($types);
+        }
+
+        if (!$posts) {
+            die('Ошибка получения данных: ' . mysqli_error($con));
+        } else {
+            $posts = mysqli_fetch_all($posts, MYSQLI_ASSOC);
+        }
+  }
 
 function truncateText($text, $maxLength = 300) {
     $counter = 0;
@@ -70,7 +62,7 @@ function truncateText($text, $maxLength = 300) {
     return  [$truncatedText, true];
 }
 
-foreach ($cards as $key => &$card) {
+foreach ($posts as $key => &$card) {
     $date = generate_random_date($key);
     $card['date']['abs'] = $date;
     $card['date']['titleTime'] = date('d.m.Y H:i', strtotime($date));
@@ -105,7 +97,7 @@ foreach ($cards as $key => &$card) {
     }
 }
 
-$pageContent = include_template('main.php', ['cards' => $cards]);
+$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types]);
 
 $layoutContent = include_template('layout.php', ['content' => $pageContent, 'is_auth' => $is_auth, 'user_name' => 'Yuriy', 'title' => 'readme: популярное']);
 

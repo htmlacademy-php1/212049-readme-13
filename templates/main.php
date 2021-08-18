@@ -42,7 +42,7 @@
                 </li>
                 <li class="popular__filters-item filters__item">
                     <a class="filters__button filters__button--photo button" href="#">
-                        <span class="visually-hidden">Фото</span>
+                        <span class="visually-hidden"><?= $posts[0] ?></span>
                         <svg class="filters__icon" width="22" height="18">
                             <use xlink:href="#icon-filter-photo"></use>
                         </svg>
@@ -50,7 +50,7 @@
                 </li>
                 <li class="popular__filters-item filters__item">
                     <a class="filters__button filters__button--video button" href="#">
-                        <span class="visually-hidden">Видео</span>
+                        <span class="visually-hidden"><?= $posts[1] ?></span>
                         <svg class="filters__icon" width="24" height="16">
                             <use xlink:href="#icon-filter-video"></use>
                         </svg>
@@ -58,7 +58,7 @@
                 </li>
                 <li class="popular__filters-item filters__item">
                     <a class="filters__button filters__button--text button" href="#">
-                        <span class="visually-hidden">Текст</span>
+                        <span class="visually-hidden"><?= $posts[2] ?></span>
                         <svg class="filters__icon" width="20" height="21">
                             <use xlink:href="#icon-filter-text"></use>
                         </svg>
@@ -66,7 +66,7 @@
                 </li>
                 <li class="popular__filters-item filters__item">
                     <a class="filters__button filters__button--quote button" href="#">
-                        <span class="visually-hidden">Цитата</span>
+                        <span class="visually-hidden"><?= $posts[3] ?></span>
                         <svg class="filters__icon" width="21" height="20">
                             <use xlink:href="#icon-filter-quote"></use>
                         </svg>
@@ -74,7 +74,7 @@
                 </li>
                 <li class="popular__filters-item filters__item">
                     <a class="filters__button filters__button--link button" href="#">
-                        <span class="visually-hidden">Ссылка</span>
+                        <span class="visually-hidden"><?= $posts[4] ?></span>
                         <svg class="filters__icon" width="21" height="18">
                             <use xlink:href="#icon-filter-link"></use>
                         </svg>
@@ -84,17 +84,17 @@
         </div>
     </div>
     <div class="popular__posts">
-        <?php foreach ($cards as $card): ?>
-            <article class="popular__post post <?= $card['type'] ?>">
+        <?php foreach ($posts as $post): ?>
+            <article class="popular__post post <?= $post['class_name'] ?>">
                 <header class="post__header">
-                    <h2><?= htmlspecialchars($card['quote'])?></h2>
+                    <h2><?= htmlspecialchars($post['title'])?></h2>
                 </header>
                 <div class="post__main">
-                    <?php switch($card['type']): 
+                    <?php switch($post['class_name']): 
                     case 'post-quote':?>
                         <blockquote>
                             <p>
-                                <?= htmlspecialchars($card['content']) ?>
+                                <?= htmlspecialchars($post['content']) ?>
                             </p>
                             <cite>Неизвестный Автор</cite>
                         </blockquote>
@@ -102,7 +102,7 @@
                     <?php case 'post-text': ?>
                         <p>
                             <?php 
-                                list($text, $isTruncated) = truncateText($card['content']);
+                                list($text, $isTruncated) = truncateText($post['content']);
                                 echo htmlspecialchars($text);
                                 if ($isTruncated): 
                             ?>
@@ -112,7 +112,7 @@
                     <?php break; ?>
                     <?php case 'post-photo': ?>
                         <div class="post-photo__image-wrapper">
-                            <img src="img/<?= $card['content'] ?>" alt="Фото от пользователя" width="360" height="240">
+                            <img src="img/<?= $post['image'] ?>" alt="Фото от пользователя" width="360" height="240">
                         </div>
                     <?php break; ?>
                     <?php case 'post-link': ?>
@@ -123,10 +123,10 @@
                                         <img src="https://www.google.com/s2/favicons?domain=vitadental.ru" alt="Иконка">
                                     </div>
                                     <div class="post-link__info">
-                                        <h3><?= htmlspecialchars($card['quote']) ?></h3>
+                                        <h3><?= htmlspecialchars($post['title']) ?></h3>
                                     </div>
                                 </div>
-                                <span><?= htmlspecialchars($card['content']) ?></span>
+                                <span><?= htmlspecialchars($post['content']) ?></span>
                             </a>
                         </div>
                     <?php break; ?>     
@@ -137,11 +137,11 @@
                         <a class="post__author-link" href="#" title="Автор">
                             <div class="post__avatar-wrapper">
                                 <!--укажите путь к файлу аватара-->
-                                <img class="post__author-avatar" src="img/<?= $card['avatar'] ?>" alt="Аватар пользователя">
+                                <img class="post__author-avatar" src="img/<?= $post['avatar'] ?>" alt="Аватар пользователя">
                             </div>
                             <div class="post__info">
-                                <b class="post__author-name"><?= htmlspecialchars($card['name']) ?></b>
-                                <time class="post__time" datetime="<?= $card['date']['abs'] ?>" title="<?= $card['date']['titleTime'] ?>"><?= $card['date']['rel'] ?></time>
+                                <b class="post__author-name"><?= htmlspecialchars($post['login']) ?></b>
+                                <time class="post__time" datetime="<?= $post['date']['abs'] ?>" title="<?= $post['date']['titleTime'] ?>"><?= $post['date']['rel'] ?></time>
                             </div>
                         </a>
                     </div>
@@ -154,7 +154,7 @@
                                 <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
                                     <use xlink:href="#icon-heart-active"></use>
                                 </svg>
-                                <span>0</span>
+                                <span><?= $post['likes_count'] ?></span>
                                 <span class="visually-hidden">количество лайков</span>
                             </a>
                             <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
