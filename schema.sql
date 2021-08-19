@@ -17,7 +17,6 @@ CREATE TABLE content_types (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	type VARCHAR(64) NOT NULL,
 	class_name VARCHAR(64) NOT NULL,
-	type_translit VARCHAR(10),
 	width VARCHAR(3) NOT NULL,
 	height VARCHAR(3) NOT NULL
 );

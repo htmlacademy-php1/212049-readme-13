@@ -3,13 +3,13 @@ USE readme;
 -- Добавление информации в БД
 -- Записываем данные (список типов контента для поста)
 INSERT INTO content_types
-	(type, class_name, type_translit, width, height)
+	(type, class_name, width, height)
 VALUES
-	('Картинка', 'post-photo', 'photo', '22', '18'),
-	('Видео', 'post-video', 'video', '24', '16'),
-	('Текст', 'post-text', 'text', '20', '21'),
-	('Цитата', 'post-quote', 'quote', '21', '20'),
-	('Ссылка', 'post-link', 'link', '21', '18');
+	('Картинка', 'photo', '22', '18'),
+	('Видео', 'video', '24', '16'),
+	('Текст', 'text', '20', '21'),
+	('Цитата', 'quote', '21', '20'),
+	('Ссылка', 'link', '21', '18');
 
 -- Добавляем пользователей
 INSERT INTO users

@@ -42,10 +42,10 @@
                 </li>
                 <?php foreach ($types as $type): ?>
                     <li class="popular__filters-item filters__item">
-                        <a class="filters__button filters__button--<?= $type['type_translit'] ?> button" href="#">
+                        <a class="filters__button filters__button--<?= $type['class_name'] ?> button" href="#">
                             <span class="visually-hidden"><?= $type['type'] ?></span>
                             <svg class="filters__icon" width="<?= $type['width'] ?>" height="<?= $type['height'] ?>">
-                                <use xlink:href="#icon-filter-<?= $type['type_translit'] ?>"></use>
+                                <use xlink:href="#icon-filter-<?= $type['class_name'] ?>"></use>
                             </svg>
                         </a>
                     </li>
@@ -55,13 +55,13 @@
     </div>
     <div class="popular__posts">
         <?php foreach ($posts as $post): ?>
-            <article class="popular__post post <?= $post['class_name'] ?>">
+            <article class="popular__post post post-<?= $post['class_name'] ?>">
                 <header class="post__header">
                     <h2><?= htmlspecialchars($post['title'])?></h2>
                 </header>
                 <div class="post__main">
                     <?php switch($post['class_name']): 
-                    case 'post-quote':?>
+                    case 'quote':?>
                         <blockquote>
                             <p>
                                 <?= htmlspecialchars($post['content']) ?>
@@ -69,7 +69,7 @@
                             <cite>Неизвестный Автор</cite>
                         </blockquote>
                     <?php break; ?>
-                    <?php case 'post-text': ?>
+                    <?php case 'text': ?>
                         <p>
                             <?php 
                                 list($text, $isTruncated) = truncateText($post['content']);
@@ -80,12 +80,12 @@
                             <?php endif; ?>
                         </p>
                     <?php break; ?>
-                    <?php case 'post-photo': ?>
+                    <?php case 'photo': ?>
                         <div class="post-photo__image-wrapper">
                             <img src="img/<?= $post['image'] ?>" alt="Фото от пользователя" width="360" height="240">
                         </div>
                     <?php break; ?>
-                    <?php case 'post-link': ?>
+                    <?php case 'link': ?>
                        <div class="post-link__wrapper">
                             <a class="post-link__external" href="http://" title="Перейти по ссылке">
                                 <div class="post-link__info-wrapper">
