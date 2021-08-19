@@ -13,30 +13,27 @@ $con = mysqli_connect('localhost', 'root', '', 'readme');
 
  if (!$con) {
        die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
-  } else {
-        $query_types = 'SELECT * FROM content_types';
-        $query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.avatar,' .
-                            '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
-                        ' FROM posts' .
-                        ' JOIN users ON posts.user_id = users.id' .
-                        ' JOIN content_types ON posts.content_type_id = content_types.id' .
-                        ' ORDER BY likes_count DESC;';
-
-        $types = mysqli_query($con, $query_types);
-        $posts = mysqli_query($con, $query_posts);
-
-        if (!$types) {
-            die('Ошибка получения данных: ' . mysqli_error($con));
-        } else {
-            $types = mysqli_fetch_all($types);
-        }
-
-        if (!$posts) {
-            die('Ошибка получения данных: ' . mysqli_error($con));
-        } else {
-            $posts = mysqli_fetch_all($posts, MYSQLI_ASSOC);
-        }
   }
+$query_types = 'SELECT * FROM content_types';
+$query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.avatar,' .
+                    '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
+                ' FROM posts' .
+                ' JOIN users ON posts.user_id = users.id' .
+                ' JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' ORDER BY likes_count DESC;';
+
+$types = mysqli_query($con, $query_types);
+$posts = mysqli_query($con, $query_posts);
+
+if (!$types) {
+    die('Ошибка получения данных: ' . mysqli_error($con));
+}
+$types = mysqli_fetch_all($types, MYSQLI_ASSOC);
+
+if (!$posts) {
+    die('Ошибка получения данных: ' . mysqli_error($con));
+}
+$posts = mysqli_fetch_all($posts, MYSQLI_ASSOC);
 
 function truncateText($text, $maxLength = 300) {
     $counter = 0;
