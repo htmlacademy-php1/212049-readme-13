@@ -140,8 +140,8 @@
                                 <img class="post__author-avatar" src="img/<?= $post['avatar'] ?>" alt="Аватар пользователя">
                             </div>
                             <div class="post__info">
-                                <b class="post__author-name"><?= htmlspecialchars($post['login']) ?></b>
-                                <time class="post__time" datetime="<?= $post['date']['abs'] ?>" title="<?= $post['date']['titleTime'] ?>"><?= $post['date']['rel'] ?></time>
+                                <b class="post__author-name"><?= htmlspecialchars($post['author']) ?></b>
+                                <time class="post__time" datetime="<?= $post['created_at'] ?>" title="<?= getModDate($post['created_at'])['titleTime'] ?>"><?= getModDate($post['created_at'])['rel'] ?></time>
                             </div>
                         </a>
                     </div>

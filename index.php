@@ -15,7 +15,7 @@ $con = mysqli_connect('localhost', 'root', '', 'readme');
        die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
   } else {
         $query_types = 'SELECT * FROM content_types';
-        $query_posts = 'SELECT posts.*, content, users.login, class_name, avatar,' .
+        $query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.avatar,' .
                             '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
                         ' FROM posts' .
                         ' JOIN users ON posts.user_id = users.id' .
@@ -62,39 +62,41 @@ function truncateText($text, $maxLength = 300) {
     return  [$truncatedText, true];
 }
 
-foreach ($posts as $key => &$card) {
-    $date = generate_random_date($key);
-    $card['date']['abs'] = $date;
-    $card['date']['titleTime'] = date('d.m.Y H:i', strtotime($date));
-    $diff = strtotime('now') - strtotime($card['date']['abs']);
-   
+function getModDate($date) {
+    $modDate = [];
+
+    $modDate['titleDate'] = date('d.m.Y H:i', strtotime($date));
+    $diff = strtotime('now') - strtotime($date);
+
     switch (true) {
         case ($diff < HOUR):
             $num = ceil($diff / MINUTE);
             $res = get_noun_plural_form($num, 'минута', 'минуты', 'минут');
-            $card['date']['rel'] = $num . ' ' . $res . ' назад';
+            $modDate['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($diff >= HOUR  && $diff < DAY):
             $num = ceil($diff / HOUR);
             $res = get_noun_plural_form($num, 'час', 'часа', 'часов');
-            $card['date']['rel'] = $num . ' ' . $res . ' назад';
+            $modDate['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($diff >= DAY && $diff < WEEK):
             $num = ceil($diff / DAY);
             $res = get_noun_plural_form($num, 'день', 'дня', 'дней');
-            $card['date']['rel'] = $num . ' ' . $res . ' назад';
+            $modDate['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($diff >= WEEK&& $diff < FIVEWEEKS):
             $num = ceil($diff / WEEK);
             $res = get_noun_plural_form($num, 'неделя', 'недели', 'недель');
-            $card['date']['rel'] = $num . ' ' . $res . ' назад';
+            $modDate['rel'] = $num . ' ' . $res . ' назад';
             break;
         case ($diff >= FIVEWEEKS):
             $num = ceil($diff / FIVEWEEKS);
             $res = get_noun_plural_form($num, 'месяц', 'месяца', 'месяцев');
-            $card['date']['rel'] = $num . ' ' . $res . ' назад';
+            $modDate['rel'] = $num . ' ' . $res . ' назад';
             break;
     }
+
+    return $modDate;
 }
 
 $pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types]);
