@@ -36,11 +36,7 @@
             <b class="popular__filters-caption filters__caption">Тип контента:</b>
             <ul class="popular__filters-list filters__list">
                 <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all 
-                    <?php if($type_id === 99): ?>
-                        filters__button--active
-                    <?php endif; ?>
-                    " href="index.php?type_id=99">
+                    <a class="filters__button filters__button--ellipse filters__button--all filters__button--active" href="#">
                         <span>Все</span>
                     </a>
                 </li>
