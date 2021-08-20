@@ -4,11 +4,16 @@ date_default_timezone_set('Europe/Moscow');
 
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; // укажите здесь ваше имя
+$type_id = '';
 define('MINUTE', 60);
 define('HOUR', 60 * MINUTE);
 define('DAY', 24 * HOUR);
 define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
+
+if (isset($_GET['type_id'])) {
+    $type_id = (int) $_GET['type_id'];
+}
 
 $con = mysqli_connect('localhost', 'root', '', 'readme');
 
@@ -100,7 +105,7 @@ function getModDate($date) {
     return $modDate;
 }
 
-$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types]);
+$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id]);
 
 $layoutContent = include_template('layout.php', ['content' => $pageContent, 'is_auth' => $is_auth, 'user_name' => 'Yuriy', 'title' => 'readme: популярное']);
 
