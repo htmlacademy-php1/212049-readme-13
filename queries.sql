@@ -3,21 +3,21 @@ USE readme;
 -- Добавление информации в БД
 -- Записываем данные (список типов контента для поста)
 INSERT INTO content_types
-	(type, class_name)
+	(type, class_name, width, height)
 VALUES
-	('Текст', 'text'),
-	('Цитата', 'quote'),
-	('Картинка', 'photo'),
-	('Видео', 'video'),
-	('Ссылка', 'link');
+	('Картинка', 'photo', '22', '18'),
+	('Видео', 'video', '24', '16'),
+	('Текст', 'text', '20', '21'),
+	('Цитата', 'quote', '21', '20'),
+	('Ссылка', 'link', '21', '18');
 
 -- Добавляем пользователей
 INSERT INTO users
-	(email, login, password)
+	(email, login, password, avatar)
 VALUES
-	('larisa@gmail.com', 'Лариса', 'qwerty'),
-	('vladik@gmail.com', 'Владик', '12345'),
-	('viktor@gmail.com', 'Виктор', 'qaz');
+	('larisa@gmail.com', 'Лариса', 'qwerty', 'userpic-larisa-small.jpg'),
+	('vladik@gmail.com', 'Владик', '12345', 'userpic.jpg'),
+	('viktor@gmail.com', 'Виктор', 'qaz', 'userpic-mark.jpg');
 
 -- Добавляем существующий список постов
 INSERT INTO posts
@@ -32,7 +32,7 @@ VALUES
 		'',
 		11,
 		1, 
-		2
+		3
 	),
 	(
 		'Игра престолов', 
@@ -43,7 +43,7 @@ VALUES
 		'',
 		22,
 		2, 
-		2
+		3
 	),
 	(
 		'Наконец, обработал фотки!',
@@ -54,7 +54,7 @@ VALUES
 		'',
 		35,
 		3,
-		3
+		1
 	),
 	(
 		'Моя мечта',
@@ -65,7 +65,7 @@ VALUES
 		'',
 		22,
 		1,
-		3
+		1
 	),
 	(
 		'Лучшие курсы',
@@ -106,6 +106,8 @@ SELECT
 	content,
 	users.login,
 	content_types.type,
+	class_name,
+	avatar,
 	(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count
 FROM posts
 JOIN users ON posts.user_id = users.id

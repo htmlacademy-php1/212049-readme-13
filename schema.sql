@@ -16,7 +16,9 @@ CREATE TABLE users (
 CREATE TABLE content_types (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	type VARCHAR(64) NOT NULL,
-	class_name VARCHAR(64) NOT NULL
+	class_name VARCHAR(64) NOT NULL,
+	width VARCHAR(3) NOT NULL,
+	height VARCHAR(3) NOT NULL
 );
 
 CREATE TABLE hashtags (
