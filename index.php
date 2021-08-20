@@ -12,9 +12,11 @@ define('FIVEWEEKS', 5 * WEEK);
 
 $con = mysqli_connect('localhost', 'root', '', 'readme');
 
- if (!$con) {
-       die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
-  }
+if (!$con) {
+   die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
+}
+mysqli_set_charset($con, 'utf8');
+
 $query_types = 'SELECT * FROM content_types';
 $query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.avatar,' .
                     '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
@@ -24,12 +26,13 @@ $query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.av
                 ' ORDER BY likes_count DESC;';
 
 $types = mysqli_query($con, $query_types);
-$posts = mysqli_query($con, $query_posts);
 
 if (!$types) {
     die('Ошибка получения данных: ' . mysqli_error($con));
 }
 $types = mysqli_fetch_all($types, MYSQLI_ASSOC);
+
+$posts = mysqli_query($con, $query_posts);
 
 if (!$posts) {
     die('Ошибка получения данных: ' . mysqli_error($con));
