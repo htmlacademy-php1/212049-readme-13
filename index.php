@@ -4,49 +4,72 @@ date_default_timezone_set('Europe/Moscow');
 
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; // укажите здесь ваше имя
-$type_id = '';
 define('MINUTE', 60);
 define('HOUR', 60 * MINUTE);
 define('DAY', 24 * HOUR);
 define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
 
-if (isset($_GET['type_id'])) {
-    $type_id = (int) $_GET['type_id'];
-}
+$type_id = isset($_GET['type_id']) ? (int) $_GET['type_id'] : '';
 
 $con = mysqli_connect('localhost', 'root', '', 'readme');
 
 if (!$con) {
    die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
 }
+
 mysqli_set_charset($con, 'utf8');
 
+$post_limit = ($type_id == 9) ? 'LIMIT 9' : 'LIMIT 6';
+
 $query_types = 'SELECT * FROM content_types';
-$query_posts = 'SELECT posts.*, users.login AS author, content_types.*, users.avatar,' .
+$query_posts_def = 'SELECT users.login AS author, content_types.*, posts.*, users.avatar,' .
+                    '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
+                ' FROM posts' .
+                ' JOIN users ON posts.user_id = users.id' .
+                ' JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' ORDER BY likes_count DESC' .
+                ' ' . $post_limit;
+$query_posts = 'SELECT users.login AS author, content_types.*, posts.*, users.avatar,' .
                     '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
                 ' FROM posts' .
                 ' JOIN users ON posts.user_id = users.id' .
                 ' JOIN content_types ON posts.content_type_id = content_types.id' .
                 ' WHERE posts.content_type_id = ?' .
-                ' ORDER BY likes_count DESC;';
+                ' ORDER BY likes_count DESC';
 
 $stmt = mysqli_prepare($con, $query_types);
 mysqli_stmt_execute($stmt);
 $res = mysqli_stmt_get_result($stmt);
+
 if (!$res) {
     die('Ошибка получения данных: ' . mysqli_error($con));
 }
+
 $types = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
-$stmt = mysqli_prepare($con, $query_posts);
-mysqli_stmt_bind_param($stmt, 'i', $type_id);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-if (!$res) {
-    die('Ошибка получения данных: ' . mysqli_error($con));
+if ($type_id == 0 or $type_id == 9) {
+    $res = mysqli_query($con, $query_posts_def);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
 }
-$posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+
+if ($type_id != 0 && $type_id != 9) {
+    $stmt = mysqli_prepare($con, $query_posts);
+    mysqli_stmt_bind_param($stmt, 'i', $type_id);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+}
 
 function truncateText($text, $maxLength = 300) {
     $counter = 0;
