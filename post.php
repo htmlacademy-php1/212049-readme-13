@@ -1,5 +1,6 @@
 <?php
 require_once 'helpers.php';
+require_once 'mysqli/mysqli-connect.php';
 
 if (!isset($_GET['post_id'])) {
 	header(' ', true, 404);
@@ -9,14 +10,6 @@ if (!isset($_GET['post_id'])) {
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; 
 $post_id = (int) $_GET['post_id'];
-
-$con = mysqli_connect('localhost', 'root', '', 'readme');
-
-if (!$con) {
-	echo 'Ошибка соединения с сервером ' . mysqli_error($con);
-}
-
-mysqli_set_charset($con, 'utf8');
 
 $query_post = 'SELECT posts.*, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
 				'(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 

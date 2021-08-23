@@ -1,26 +1,25 @@
 <?php
 require_once 'helpers.php';
+require_once 'mysqli/mysqli-connect.php';
 date_default_timezone_set('Europe/Moscow');
 
 $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; // укажите здесь ваше имя
+$cardsOnPageAll = (isset($_GET['cardsOnPageAll'])) ? true : false;
+$cardsOnPageMax = 9;
+$cardsOnPageDef = 6;
+$post_limit = "LIMIT $cardsOnPageDef";
 define('MINUTE', 60);
 define('HOUR', 60 * MINUTE);
 define('DAY', 24 * HOUR);
 define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
 
-$type_id = isset($_GET['type_id']) ? (int) $_GET['type_id'] : '';
+$type_id = isset($_GET['type_id']) ? (int) $_GET['type_id'] : null;
 
-$con = mysqli_connect('localhost', 'root', '', 'readme');
-
-if (!$con) {
-   die('Ошибка соединения с сервером MySQL: ' . mysqli_connect_error());
+if ($cardsOnPageAll) {
+    $post_limit = "LIMIT $cardsOnPageMax";
 }
-
-mysqli_set_charset($con, 'utf8');
-
-$post_limit = ($type_id == 9) ? 'LIMIT 9' : 'LIMIT 6';
 
 $query_types = 'SELECT * FROM content_types';
 $query_posts_def = 'SELECT users.login AS author, content_types.*, posts.*, users.avatar,' .
@@ -48,7 +47,7 @@ if (!$res) {
 
 $types = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
-if ($type_id == 0 or $type_id == 9) {
+if ($type_id === null || $cardsOnPageAll) {
     $res = mysqli_query($con, $query_posts_def);
 
     if (!$res) {
@@ -56,9 +55,7 @@ if ($type_id == 0 or $type_id == 9) {
     }
 
     $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
-}
-
-if ($type_id != 0 && $type_id != 9) {
+} else {
     $stmt = mysqli_prepare($con, $query_posts);
     mysqli_stmt_bind_param($stmt, 'i', $type_id);
     mysqli_stmt_execute($stmt);
@@ -132,7 +129,7 @@ function getModDate($date) {
     return $modDate;
 }
 
-$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id]);
+$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll]);
 
 $layoutContent = include_template('layout.php', ['content' => $pageContent, 'is_auth' => $is_auth, 'user_name' => 'Yuriy', 'title' => 'readme: популярное']);
 
