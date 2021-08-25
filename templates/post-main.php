@@ -1,9 +1,9 @@
 <main class="page__main page__main--publication">
   <div class="container">
-    <h1 class="page__title page__title--publication"><?=$post['title']?></h1>
+    <h1 class="page__title page__title--publication"><?=htmlspecialchars($post['title'])?></h1>
     <section class="post-details">
       <h2 class="visually-hidden">Публикация</h2>
-      <div class="post-details__wrapper post-<?=$post['class_name']?>">
+      <div class="post-details__wrapper post-<?=htmlspecialchars($post['class_name'])?>">
         <div class="post-details__main-block post post--details">
           <?= $blockContent ?>
           <div class="post__indicators">
@@ -114,7 +114,7 @@
             </div>
             <div class="post-details__name-wrapper user__name-wrapper">
               <a class="post-details__name user__name" href="#">
-                <span><?=$post['author']?></span>
+                <span><?=htmlspecialchars($post['author'])?></span>
               </a>
               <time class="post-details__time user__time" datetime="2014-03-20">5 лет на сайте</time>
             </div>

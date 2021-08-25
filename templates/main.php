@@ -121,7 +121,7 @@
                             </div>
                             <div class="post__info">
                                 <b class="post__author-name"><?= htmlspecialchars($post['author']) ?></b>
-                                <time class="post__time" datetime="<?= $post['created_at'] ?>" title="<?= getModDate($post['created_at'])['titleTime'] ?>"><?= getModDate($post['created_at'])['rel'] ?></time>
+                                <time class="post__time" datetime="<?= $post['created_at'] ?>" title="<?= getModDate($post['created_at'])['titleDate'] ?>"><?= getModDate($post['created_at'])['rel'] ?></time>
                             </div>
                         </a>
                     </div>

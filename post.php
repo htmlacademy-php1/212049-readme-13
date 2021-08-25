@@ -3,7 +3,7 @@ require_once 'helpers.php';
 require_once 'mysqli/mysqli-connect.php';
 
 if (!isset($_GET['post_id'])) {
-	header(' ', true, 404);
+	header(' ', true, http_response_code(404));
 	exit();
 }
 
@@ -30,7 +30,7 @@ if (!$res) {
 $post = mysqli_fetch_assoc($res);
 
 if (empty($post)) {
-	header(' ', true, 404);
+	header(' ', true, http_response_code(404));
 	exit();
 }
 
