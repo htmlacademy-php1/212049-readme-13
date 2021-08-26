@@ -1,9 +1,9 @@
 <?php
 require_once 'helpers.php';
-require_once 'mysqli/mysqli-connect.php';
+require_once 'functions.php';
 
 if (!isset($_GET['post_id'])) {
-	header(' ', true, http_response_code(404));
+	http_response_code(404);
 	exit();
 }
 
@@ -11,28 +11,8 @@ $is_auth = rand(0, 1);
 $user_name = 'Yuriy'; 
 $post_id = (int) $_GET['post_id'];
 
-$query_post = 'SELECT posts.*, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
-				'(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
-				' FROM posts' .
-				' JOIN users ON posts.user_id = users.id' .
-				' JOIN content_types ON posts.content_type_id = content_types.id' .
-				' WHERE posts.id = ?;';
-
-$stmt = mysqli_prepare($con, $query_post);
-mysqli_stmt_bind_param($stmt, 'i', $post_id);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-
-if (!$res) {
-    die('Ошибка получения данных: ' . mysqli_error($con));
-}
-
-$post = mysqli_fetch_assoc($res);
-
-if (empty($post)) {
-	header(' ', true, http_response_code(404));
-	exit();
-}
+$con = masqliConnect();
+$post = getPost($post_id, $con);
 
 $pathBlock = 'post-' . $post['post_type'] . '.php';
 $blockContent = include_template($pathBlock, ['post' => $post]);

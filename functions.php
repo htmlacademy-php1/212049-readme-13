@@ -127,7 +127,7 @@ function getPostTypes(object $con): array {
  * 
  * @return array
  */
-function getPosts($type_id, string $cardsOnPageAll, object $con): array {
+function getPosts(int $type_id, bool $cardsOnPageAll, object $con): array {
     $cardsOnPageMax = 9;
     $cardsOnPageDef = 6;
     $post_limit = 'LIMIT ' . $cardsOnPageDef;
@@ -151,7 +151,7 @@ function getPosts($type_id, string $cardsOnPageAll, object $con): array {
                 ' WHERE posts.content_type_id = ?' .
                 ' ORDER BY likes_count DESC';
 
-    if ($type_id === null || $cardsOnPageAll) {
+    if ($type_id === 0 || $cardsOnPageAll) {
         $res = mysqli_query($con, $query_posts_def);
 
         if (!$res) {
@@ -172,4 +172,38 @@ function getPosts($type_id, string $cardsOnPageAll, object $con): array {
         $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
     }
         return $posts;
+}
+
+/**
+ * Возвращает обьединенную таблицу: пост, пользователь и тип поста из базы данных
+ *
+ * @param $post_id пост
+ * @param mysqli Object $con Обьект mysqli
+ * 
+ * @return array
+ */
+function getPost(int $post_id, object $con) {
+    $query_post = 'SELECT posts.*, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
+                '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
+                ' FROM posts' .
+                ' JOIN users ON posts.user_id = users.id' .
+                ' JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' WHERE posts.id = ?;';
+
+    $stmt = mysqli_prepare($con, $query_post);
+    mysqli_stmt_bind_param($stmt, 'i', $post_id);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $post = mysqli_fetch_assoc($res);
+
+    if (empty($post)) {
+        http_response_code(404);
+        exit();
+    }
+    return $post;
 }

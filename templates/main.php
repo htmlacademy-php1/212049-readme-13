@@ -50,7 +50,7 @@
                             <?php if($type_id === $type['id']): ?>
                                 filters__button--active
                             <?php endif; ?>
-                            " href="index.php?type_id=<?=$type['id'] ?>">
+                            " href="index.php?type_id=<?=$type['id']?>">
                             <span class="visually-hidden"><?= $type['type'] ?></span>
                             <svg class="filters__icon" width="<?= $type['width'] ?>" height="<?= $type['height'] ?>">
                                 <use xlink:href="#icon-filter-<?= $type['class_name'] ?>"></use>

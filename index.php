@@ -1,7 +1,6 @@
 <?php
 require_once 'helpers.php';
 require_once 'functions.php';
-require_once 'mysqli/mysqli-connect.php';
 
 date_default_timezone_set('Europe/Moscow');
 
@@ -14,7 +13,7 @@ define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
 
 $cardsOnPageAll = isset($_GET['cardsOnPageAll']);
-$type_id = filter_input(INPUT_GET,'type_id');
+$type_id = isset($_GET['type_id']) ? $_GET['type_id'] : 0;
 $con = masqliConnect();
 $types = getPostTypes($con);
 $posts = getPosts($type_id, $cardsOnPageAll, $con);
