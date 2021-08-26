@@ -36,13 +36,21 @@
             <b class="popular__filters-caption filters__caption">Тип контента:</b>
             <ul class="popular__filters-list filters__list">
                 <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all filters__button--active" href="#">
+                    <a class="filters__button filters__button--ellipse filters__button--all 
+                    <?php if($cardsOnPageAll): ?>
+                        filters__button--active
+                    <?php endif; ?>
+                    " href="index.php?cardsOnPageAll=true">
                         <span>Все</span>
                     </a>
                 </li>
                 <?php foreach ($types as $type): ?>
                     <li class="popular__filters-item filters__item">
-                        <a class="filters__button filters__button--<?= $type['class_name'] ?> button" href="#">
+                        <a class="filters__button filters__button--<?= $type['class_name'] ?> button 
+                            <?php if($type_id === $type['id']): ?>
+                                filters__button--active
+                            <?php endif; ?>
+                            " href="index.php?type_id=<?=$type['id']?>">
                             <span class="visually-hidden"><?= $type['type'] ?></span>
                             <svg class="filters__icon" width="<?= $type['width'] ?>" height="<?= $type['height'] ?>">
                                 <use xlink:href="#icon-filter-<?= $type['class_name'] ?>"></use>
@@ -57,7 +65,9 @@
         <?php foreach ($posts as $post): ?>
             <article class="popular__post post post-<?= $post['class_name'] ?>">
                 <header class="post__header">
-                    <h2><?= htmlspecialchars($post['title'])?></h2>
+                    <a href="post.php?post_id=<?= $post['id'] ?>">
+                        <h2><?= htmlspecialchars($post['title'])?></h2>
+                    </a>
                 </header>
                 <div class="post__main">
                     <?php switch($post['class_name']): 
@@ -111,7 +121,7 @@
                             </div>
                             <div class="post__info">
                                 <b class="post__author-name"><?= htmlspecialchars($post['author']) ?></b>
-                                <time class="post__time" datetime="<?= $post['created_at'] ?>" title="<?= getModDate($post['created_at'])['titleTime'] ?>"><?= getModDate($post['created_at'])['rel'] ?></time>
+                                <time class="post__time" datetime="<?= $post['created_at'] ?>" title="<?= getModDate($post['created_at'])['titleDate'] ?>"><?= getModDate($post['created_at'])['rel'] ?></time>
                             </div>
                         </a>
                     </div>
