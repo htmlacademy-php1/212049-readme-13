@@ -182,7 +182,7 @@ function getPosts(int $type_id, bool $cardsOnPageAll, object $con): array {
  * 
  * @return array
  */
-function getPost(int $post_id, object $con) {
+function getPost(int $post_id, object $con): array {
     $query_post = 'SELECT posts.*, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
                 '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
                 ' FROM posts' .
@@ -207,3 +207,239 @@ function getPost(int $post_id, object $con) {
     }
     return $post;
 }
+
+/**
+ * Проверяет заполнено ли обязательное поле, если не заполнено возвращает текст ошибки
+ *
+ * @param string string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function validateField(string $name) {
+    if (empty($_POST[$name])) {
+        return 'Поле должно быть заполнено';
+    }
+}
+
+/**
+ * Проверяет корректность URL, если поле не заполнено возвращает пустую строку
+ *
+ * @param string string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function validateUrl(string $name) {
+    if (empty($_POST[$name])) {
+        return '';
+    }
+
+    if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
+        return 'Введите корректную ссылку из интернета';
+    }
+}
+
+/**
+ * Проверяет заполнено ли поле и корректность введенного URL
+ *
+ * @param string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function validateRequiredUrl(string $name): string {
+    if (empty($_POST[$name])) {
+        return 'Поле должно быть заполнено';
+    }
+    if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
+        return 'Введите корректную ссылку из интернета';
+    }
+}
+
+/**
+ * Проверяет введен один или более хештегов, проверяет начинается хештег с #, если нет возвращает текст ошибки
+ *
+ * @param string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function validateHashtag(string $name) {
+    if (empty($_POST[$name])) {
+        return '';
+    }
+
+    if(!preg_match_all('/#[^#\s]+/', $_POST[$name])) {
+        return 'Введите корректный хештег(и)';
+    }
+}
+
+/**
+ * Проверяет тип и размер загруженного файла, если некорректный возвращает текст ошибки
+ * 
+ * @return string
+ */
+function validateImage() {
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $fileName = $_FILES['userpic-file-photo']['tmp_name'];
+    $fileSize = $_FILES['userpic-file-photo']['size'];
+
+    $fileType = finfo_file($finfo, $fileName);
+
+    if ($fileType !== 'image/jpeg' && $fileType !== 'image/jpg' && $fileType !== 'image/png' && $fileType !== 'image/gif') {
+        return 'Загрузите картинку в одном из следующих форматов - jpg/png/gif ';
+    }
+
+    if ($fileSize > 200000) {
+        return 'Максимальный размер файла 200K';
+    }
+}
+
+/**
+ * Осуществляет валидацию данных из формы
+ * 
+ * @return array
+ */
+function validateForm(): array {
+    $errors = [];
+    $rules = [
+        'photo-title' => function() {
+            return validateField('photo-title');
+        },
+        'photo-url' => function() {
+            return validateUrl('photo-url');
+        },
+        'photo-tag' => function() {
+            return validateHashtag('photo-tag');
+        },
+         'video-title' => function() {
+            return validateField('video-title');
+        },
+        'video-url' => function() {
+            return validateRequiredUrl('video-url');
+        },
+        'video-tag' => function() {
+            return validateHashtag('video-tag');
+        },
+        'text-title' => function() {
+            return validateField('text-title');
+        },
+        'text-content' => function() {
+            return validateField('text-content');
+        },
+        'text-tag' => function() {
+            return validateHashtag('text-tag');
+        },
+        'quote-title' => function() {
+            return validateField('quote-title');
+        },
+        'quote-content' => function() {
+            return validateField('quote-content');
+        },
+        'quote-author' => function() {
+            return validateField('quote-author');
+        },
+        'quote-tag' => function() {
+            return validateHashtag('quote-tag');
+        },
+        'link-title' => function() {
+            return validateField('link-title');
+        },
+        'link-url' => function() {
+            return validateRequiredUrl('link-url');
+        },
+        'link-tag' => function() {
+            return validateHashtag('link-tag');
+        },
+    ];
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        foreach ($_POST as $key => $value) {
+            if (isset($rules[$key])) {
+                $rule = $rules[$key];
+                $errors[$key] = $rule();
+            }
+        }
+    }
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+/**
+ * Меняет ключи из массива $errors на значения из массива $keys
+ *
+ * @param array $errors массив с ошибками после валидации данных из формы
+ * 
+ * @return array
+ */
+function modifyErrors(array $errors): array {
+    $modErrors = [];
+    $keys = [
+        'photo-title' => 'ЗАГОЛОВОК',
+        'video-title' => 'ЗАГОЛОВОК',
+        'text-title' => 'ЗАГОЛОВОК',
+        'quote-title' => 'ЗАГОЛОВОК',
+        'link-title' => 'ЗАГОЛОВОК',
+        'photo-url' => 'ССЫЛКА ИЗ ИНТЕРНЕТА', 
+        'photo-tag' => 'ТЕГИ',
+        'video-tag' => 'ТЕГИ',
+        'text-tag' => 'ТЕГИ',
+        'quote-tag' => 'ТЕГИ',
+        'link-tag' => 'ТЕГИ',
+        'video-url' => 'ССЫЛКА YOUTUBE', 
+        'text-content' => 'ТЕКСТ ПОСТА', 
+        'quote-content' => 'ТЕКСТ ЦИТАТЫ', 
+        'quote-author' => 'АВТОР', 
+        'link-url' => 'ССЫЛКА',
+    ];
+
+   foreach ($errors as $key => $value) {
+       if (isset($keys[$key])) {
+           $modErrors[$keys[$key]] = $value;
+       }
+   }
+
+   return $modErrors;
+}
+
+/**
+ * Возвращает значение по ключу $name из массива $_POST
+ *
+ * @param string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function getPostValue($name): string {
+    return $_POST[$name] ?? '';
+}
+
+/**
+ * Перемещает файл из временного хранилища в публичную папку проекта
+ */
+function moveLoadedFile() {
+    $ext = explode('/', $_FILES['userpic-file-photo']['type']);
+    $fileName = uniqid() . '.' . $ext[1];
+    $filePath = __DIR__ . '/uploads/';
+
+    move_uploaded_file($_FILES['userpic-file-photo']['tmp_name'], $filePath . $fileName);
+}
+
+/**
+ * Скачивает файл по ссылке и помещает в публичную папку проекта
+ * 
+ * @return string
+ */
+function downloadImageFile() {
+    $link = $_POST['photo-url'];
+    preg_match('/jpeg|jpg|png|gif/', $link, $match);
+    $path = __DIR__ . '/uploads/'. uniqid() . '.' . $match[0];
+
+    if(@!$file = file_get_contents($link)) {
+        return 'Ошибка загрузки файла по сети';
+    }
+
+    file_put_contents($path, $file);
+}
+
+// function getTags() {
+//     preg_match_all('/#[^#\s]+/', $_POST[$name], $match);
+//     print_r($match);
+// }
