@@ -14,7 +14,7 @@ define('FIVEWEEKS', 5 * WEEK);
 
 $cardsOnPageAll = isset($_GET['cardsOnPageAll']);
 $type_id = isset($_GET['type_id']) ? $_GET['type_id'] : 0;
-$con = masqliConnect();
+$con = mysqliConnect();
 $types = getPostTypes($con);
 $posts = getPosts($type_id, $cardsOnPageAll, $con);
 

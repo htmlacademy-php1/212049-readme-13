@@ -83,7 +83,7 @@ function getModDate(string $date): array {
  * 
  * @return mysqli Object $con Обьект mysqli
  */
-function masqliConnect(): object {
+function mysqliConnect(): object {
     $con = mysqli_connect('localhost', 'root', '', 'readme');
 
     if (!$con) {
@@ -116,6 +116,68 @@ function getPostTypes(object $con): array {
     $types = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
     return $types;
+}
+
+/**
+ * Вставляет данные ($tags) в таблицу hashtags БД readme
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param array $tags простой массив значения которого теги переданные через форму публикации поста
+ * 
+ * @return void
+ */
+function insertTagsToDatabase($con, $tags): void {
+    $query = 'INSERT INTO hashtags(hashtag) VALUE (?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    foreach ($tags as $key => $tag) {
+        mysqli_stmt_bind_param($stmt, 's', $tag);
+        mysqli_stmt_execute($stmt);
+    }
+}
+
+/**
+ * Вставляет данные переданные из формы в таблицу posts БД readme
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $postType тип контента
+ * @param string $filePath путь к файлу сохраненному в публичной папке проекта uploads
+ * 
+ * @return void
+ */
+function insertPostToDatabase($con, $postType, $filePath): void {
+    list(,$title, $content, $quote_author) = array_values($_POST);
+    $queries = [
+        'photo' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", ?, "", "", 10, 1, 1);',
+        'video' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", "", ?, "", 11, 1, 2);',
+        'text' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, ?, "anonymous", "", "", "", 12, 1, 3);',
+        'quote' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, ?, ?, "", "", "", 13, 1, 4);',
+        'link' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", "", "", ?, 14, 1, 5);',
+    ];
+
+    foreach ($queries as $type => $query) {
+        if ($postType === $type) {
+            $postQuery = $query;
+        }
+    }
+
+    $stmt = mysqli_prepare($con, $postQuery);
+
+    if ($postType === 'quote') {
+        mysqli_stmt_bind_param($stmt, 'sss', $title, $content, $quote_author);
+    } elseif ($postType === 'photo' || $postType === 'video') {
+        mysqli_stmt_bind_param($stmt, 'ss', $title, $filePath);
+    } else {
+         mysqli_stmt_bind_param($stmt, 'ss', $title, $content);
+    }
+    
+    if(@!mysqli_stmt_execute($stmt)) {
+        echo 'Ошибка загрузки поста в базу данных ' . mysqli_error($con);
+        die;
+    } else {
+        $postId = mysqli_insert_id($con);
+        //header('Location: post.php?post_id=' . $postId, true, 303);
+    }
 }
 
 /**
@@ -215,10 +277,11 @@ function getPost(int $post_id, object $con): array {
  * 
  * @return string
  */
-function validateField(string $name) {
+function validateField(string $name): string {
     if (empty($_POST[$name])) {
         return 'Поле должно быть заполнено';
     }
+    return '';
 }
 
 /**
@@ -228,7 +291,7 @@ function validateField(string $name) {
  * 
  * @return string
  */
-function validateUrl(string $name) {
+function validateUrl(string $name): string {
     if (empty($_POST[$name])) {
         return '';
     }
@@ -236,6 +299,7 @@ function validateUrl(string $name) {
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
         return 'Введите корректную ссылку из интернета';
     }
+    return '';
 }
 
 /**
@@ -252,6 +316,31 @@ function validateRequiredUrl(string $name): string {
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
         return 'Введите корректную ссылку из интернета';
     }
+    return '';
+}
+
+/**
+ * Проверяет заполнено ли поле, корректность введенного URL и проверяет существование видео по указанной ссылке
+ *
+ * @param string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function validateYoutubeUrl(string $name): string {
+    if (empty($_POST[$name])) {
+        return 'Поле должно быть заполнено';
+    }
+    if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
+        return 'Введите корректную ссылку из интернета';
+    }
+    if ($error = check_youtube_url($_POST[$name])) {
+       if ($error === true) {
+           return '';
+       } else {
+            return $error;
+       }
+    }
+    return '';
 }
 
 /**
@@ -261,7 +350,7 @@ function validateRequiredUrl(string $name): string {
  * 
  * @return string
  */
-function validateHashtag(string $name) {
+function validateHashtag(string $name): string {
     if (empty($_POST[$name])) {
         return '';
     }
@@ -269,6 +358,7 @@ function validateHashtag(string $name) {
     if(!preg_match_all('/#[^#\s]+/', $_POST[$name])) {
         return 'Введите корректный хештег(и)';
     }
+    return '';
 }
 
 /**
@@ -276,7 +366,7 @@ function validateHashtag(string $name) {
  * 
  * @return string
  */
-function validateImage() {
+function validateImage(): string {
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $fileName = $_FILES['userpic-file-photo']['tmp_name'];
     $fileSize = $_FILES['userpic-file-photo']['size'];
@@ -290,6 +380,7 @@ function validateImage() {
     if ($fileSize > 200000) {
         return 'Максимальный размер файла 200K';
     }
+    return '';
 }
 
 /**
@@ -313,7 +404,7 @@ function validateForm(): array {
             return validateField('video-title');
         },
         'video-url' => function() {
-            return validateRequiredUrl('video-url');
+            return validateYoutubeUrl('video-url');
         },
         'video-tag' => function() {
             return validateHashtag('video-tag');
@@ -413,13 +504,17 @@ function getPostValue($name): string {
 
 /**
  * Перемещает файл из временного хранилища в публичную папку проекта
+ * 
+ * @return void
  */
-function moveLoadedFile() {
+function moveLoadedFile(): void {
     $ext = explode('/', $_FILES['userpic-file-photo']['type']);
-    $fileName = uniqid() . '.' . $ext[1];
-    $filePath = __DIR__ . '/uploads/';
+    $file = uniqid() . '.' . $ext[1];
+    $path = __DIR__ . '/uploads/' . $file;
+    global $filePath;
+    $filePath = $file;
 
-    move_uploaded_file($_FILES['userpic-file-photo']['tmp_name'], $filePath . $fileName);
+    move_uploaded_file($_FILES['userpic-file-photo']['tmp_name'], $path);
 }
 
 /**
@@ -427,19 +522,36 @@ function moveLoadedFile() {
  * 
  * @return string
  */
-function downloadImageFile() {
+function downloadImageFile(): string {
     $link = $_POST['photo-url'];
-    preg_match('/jpeg|jpg|png|gif/', $link, $match);
-    $path = __DIR__ . '/uploads/'. uniqid() . '.' . $match[0];
-
-    if(@!$file = file_get_contents($link)) {
+    $error = '';
+    
+    if(@!$fileContent = file_get_contents($link)) {
         return 'Ошибка загрузки файла по сети';
     }
+    preg_match('/jpeg|jpg|png|gif/', $link, $match);
+    $ext = $match[0];
+    $dir = __DIR__ . '/uploads/';
+    $file = uniqid() . '.' . $ext;
+    $path = $dir . $file;
+    global $filePath;
+    $filePath = $file;
 
-    file_put_contents($path, $file);
+    file_put_contents($path, $fileContent);
+
+    return '';
 }
 
-// function getTags() {
-//     preg_match_all('/#[^#\s]+/', $_POST[$name], $match);
-//     print_r($match);
-// }
+/**
+ * Разбивает строку тегов на отдельные слова 
+ * 
+ * @param string $tagIndex ключ 
+ * 
+ * @return array
+ */
+function getTags($tagIndex): array {
+    preg_match_all('/#[^#\s]+/', $_POST[$tagIndex], $match);
+    $tags = $match[0];
+
+    return $tags;
+}
