@@ -375,29 +375,12 @@ function validateForm($rules, $required) {
  * Меняет ключи из массива $errors на значения из массива $keys
  *
  * @param array $errors массив с ошибками после валидации данных из формы
+ * @param array $keys массив с ключами
  * 
  * @return array
  */
-function modifyErrors(array $errors): array {
+function modifyErrors(array $errors, array $keys): array {
     $modErrors = [];
-    $keys = [
-        'photo-title' => 'ЗАГОЛОВОК',
-        'video-title' => 'ЗАГОЛОВОК',
-        'text-title' => 'ЗАГОЛОВОК',
-        'quote-title' => 'ЗАГОЛОВОК',
-        'link-title' => 'ЗАГОЛОВОК',
-        'photo-url' => 'ССЫЛКА ИЗ ИНТЕРНЕТА', 
-        'photo-tag' => 'ТЕГИ',
-        'video-tag' => 'ТЕГИ',
-        'text-tag' => 'ТЕГИ',
-        'quote-tag' => 'ТЕГИ',
-        'link-tag' => 'ТЕГИ',
-        'video-url' => 'ССЫЛКА YOUTUBE', 
-        'text-content' => 'ТЕКСТ ПОСТА', 
-        'quote-content' => 'ТЕКСТ ЦИТАТЫ', 
-        'quote-author' => 'АВТОР', 
-        'link-url' => 'ССЫЛКА',
-    ];
 
    foreach ($errors as $key => $value) {
        if (isset($keys[$key])) {

@@ -38,8 +38,24 @@ $rules = [
         return validateHashtag('link-tag');
     },
 ];
-$con = mysqliConnect();
-$postTypes = getPostTypes($con);
+$keys = [
+    'photo-title' => 'ЗАГОЛОВОК',
+    'video-title' => 'ЗАГОЛОВОК',
+    'text-title' => 'ЗАГОЛОВОК',
+    'quote-title' => 'ЗАГОЛОВОК',
+    'link-title' => 'ЗАГОЛОВОК',
+    'photo-url' => 'ССЫЛКА ИЗ ИНТЕРНЕТА', 
+    'photo-tag' => 'ТЕГИ',
+    'video-tag' => 'ТЕГИ',
+    'text-tag' => 'ТЕГИ',
+    'quote-tag' => 'ТЕГИ',
+    'link-tag' => 'ТЕГИ',
+    'video-url' => 'ССЫЛКА YOUTUBE', 
+    'text-content' => 'ТЕКСТ ПОСТА', 
+    'quote-content' => 'ТЕКСТ ЦИТАТЫ', 
+    'quote-author' => 'АВТОР', 
+    'link-url' => 'ССЫЛКА',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = validateForm($rules, $required);
@@ -67,8 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         insertPostToDatabase($con, $postType, $tags, $filePath);
     }
     
-    $modErrors = modifyErrors($errors); 
+    $modErrors = modifyErrors($errors, $keys); 
 }
+
+$con = mysqliConnect();
+$postTypes = getPostTypes($con);
 
 $blockContent = include_template($blockContentPath, ['errors' => $errors, 'modErrors' => $modErrors]);
 $pageContent = include_template('adding-post-main.php', ['blockContent' => $blockContent, 'postTypes' => $postTypes, 'postType' => $postType]);
