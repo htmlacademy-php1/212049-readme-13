@@ -271,21 +271,7 @@ function getPost(int $post_id, object $con): array {
 }
 
 /**
- * Проверяет заполнено ли обязательное поле, если не заполнено возвращает текст ошибки
- *
- * @param string string $name значение атрибута name поля формы
- * 
- * @return string
- */
-function validateField(string $name): string {
-    if (empty($_POST[$name])) {
-        return 'Поле должно быть заполнено';
-    }
-    return '';
-}
-
-/**
- * Проверяет корректность URL, если поле не заполнено возвращает пустую строку
+ * Проверяет корректность URL
  *
  * @param string string $name значение атрибута name поля формы
  * 
@@ -295,7 +281,6 @@ function validateUrl(string $name): string {
     if (empty($_POST[$name])) {
         return '';
     }
-
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
         return 'Введите корректную ссылку из интернета';
     }
@@ -303,33 +288,13 @@ function validateUrl(string $name): string {
 }
 
 /**
- * Проверяет заполнено ли поле и корректность введенного URL
- *
- * @param string $name значение атрибута name поля формы
- * 
- * @return string
- */
-function validateRequiredUrl(string $name): string {
-    if (empty($_POST[$name])) {
-        return 'Поле должно быть заполнено';
-    }
-    if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
-        return 'Введите корректную ссылку из интернета';
-    }
-    return '';
-}
-
-/**
- * Проверяет заполнено ли поле, корректность введенного URL и проверяет существование видео по указанной ссылке
+ * Проверяет корректность введенного URL и существование видео по указанной ссылке
  *
  * @param string $name значение атрибута name поля формы
  * 
  * @return string
  */
 function validateYoutubeUrl(string $name): string {
-    if (empty($_POST[$name])) {
-        return 'Поле должно быть заполнено';
-    }
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
         return 'Введите корректную ссылку из интернета';
     }
@@ -388,65 +353,17 @@ function validateImage(): string {
  * 
  * @return array
  */
-function validateForm(): array {
+function validateForm($rules, $required) {
     $errors = [];
-    $rules = [
-        'photo-title' => function() {
-            return validateField('photo-title');
-        },
-        'photo-url' => function() {
-            return validateUrl('photo-url');
-        },
-        'photo-tag' => function() {
-            return validateHashtag('photo-tag');
-        },
-         'video-title' => function() {
-            return validateField('video-title');
-        },
-        'video-url' => function() {
-            return validateYoutubeUrl('video-url');
-        },
-        'video-tag' => function() {
-            return validateHashtag('video-tag');
-        },
-        'text-title' => function() {
-            return validateField('text-title');
-        },
-        'text-content' => function() {
-            return validateField('text-content');
-        },
-        'text-tag' => function() {
-            return validateHashtag('text-tag');
-        },
-        'quote-title' => function() {
-            return validateField('quote-title');
-        },
-        'quote-content' => function() {
-            return validateField('quote-content');
-        },
-        'quote-author' => function() {
-            return validateField('quote-author');
-        },
-        'quote-tag' => function() {
-            return validateHashtag('quote-tag');
-        },
-        'link-title' => function() {
-            return validateField('link-title');
-        },
-        'link-url' => function() {
-            return validateRequiredUrl('link-url');
-        },
-        'link-tag' => function() {
-            return validateHashtag('link-tag');
-        },
-    ];
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        foreach ($_POST as $key => $value) {
-            if (isset($rules[$key])) {
-                $rule = $rules[$key];
-                $errors[$key] = $rule();
-            }
+    foreach ($_POST as $key => $value) {
+        if (isset($rules[$key])) {
+            $rule = $rules[$key];
+            $errors[$key] = $rule();
+        }
+
+        if (in_array($key, $required) && empty($value)) {
+            $errors[$key] = 'Поле должно быть заполнено';
         }
     }
 
