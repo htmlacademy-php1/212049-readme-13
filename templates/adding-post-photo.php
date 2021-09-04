@@ -1,6 +1,6 @@
 <section class="adding-post__photo tabs__content tabs__content--active">
   <h2 class="visually-hidden">Форма добавления фото</h2>
-  <form class="adding-post__form form" action="add.php" method="post" enctype="multipart/form-data">
+  <form class="adding-post__form form" action="" method="post" enctype="multipart/form-data">
     <div class="form__text-inputs-wrapper">
       <div class="form__text-inputs">
         <div class="adding-post__input-wrapper form__input-wrapper 
@@ -8,7 +8,6 @@
             form__input-section--error
           <?php endif; ?>
           ">
-          <input class="visually-hidden" type="text" name="content-type['photo']">
           <label class="adding-post__label form__label" for="photo-heading">Заголовок <span class="form__input-required">*</span></label>
           <div class="form__input-section">
             <input class="adding-post__input form__input" id="photo-heading" type="text" name="photo-title" placeholder="Введите заголовок" value="<?=getPostValue('photo-title');?>">

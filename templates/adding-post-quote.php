@@ -1,6 +1,6 @@
 <section class="adding-post__quote tabs__content tabs__content--active">
   <h2 class="visually-hidden">Форма добавления цитаты</h2>
-  <form class="adding-post__form form" action="add.php" method="post">
+  <form class="adding-post__form form" action="" method="post">
     <div class="form__text-inputs-wrapper">
       <div class="form__text-inputs">
         <div class="adding-post__input-wrapper form__input-wrapper
@@ -8,7 +8,6 @@
             form__input-section--error
           <?php endif; ?>
           ">
-          <input class="visually-hidden" type="text" name="content-type['quote']">
           <label class="adding-post__label form__label" for="quote-heading">Заголовок <span class="form__input-required">*</span></label>
           <div class="form__input-section">
             <input class="adding-post__input form__input" id="quote-heading" type="text" name="quote-title" placeholder="Введите заголовок" value="<?=getPostValue('quote-title');?>">

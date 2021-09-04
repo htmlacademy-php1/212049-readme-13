@@ -126,7 +126,7 @@ function getPostTypes(object $con): array {
  * 
  * @return void
  */
-function insertTagsToDatabase($con, $tags): void {
+function insertTagsToDatabase(object $con, array $tags): void {
     $query = 'INSERT INTO hashtags(hashtag) VALUE (?)';
 
     $stmt = mysqli_prepare($con, $query);
@@ -142,11 +142,12 @@ function insertTagsToDatabase($con, $tags): void {
  * @param mysqli Object $con Обьект mysqli
  * @param string $postType тип контента
  * @param string $filePath путь к файлу сохраненному в публичной папке проекта uploads
+ * @param array $formData данные из формы переданные пользователем
  * 
  * @return void
  */
-function insertPostToDatabase($con, $postType, $filePath): void {
-    list(,$title, $content, $quote_author) = array_values($_POST);
+function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): void {
+    list($title, $content, $quote_author) = array_values($formData);
     $queries = [
         'photo' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", ?, "", "", 10, 1, 1);',
         'video' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", "", ?, "", 11, 1, 2);',
@@ -174,10 +175,10 @@ function insertPostToDatabase($con, $postType, $filePath): void {
     if(@!mysqli_stmt_execute($stmt)) {
         echo 'Ошибка загрузки поста в базу данных ' . mysqli_error($con);
         die;
-    } else {
-        $postId = mysqli_insert_id($con);
-        //header('Location: post.php?post_id=' . $postId, true, 303);
     }
+
+    $postId = mysqli_insert_id($con);
+    header('Location: post.php?post_id=' . $postId, true, 302);
 }
 
 /**
@@ -273,12 +274,13 @@ function getPost(int $post_id, object $con): array {
 /**
  * Проверяет корректность URL
  *
- * @param string string $name значение атрибута name поля формы
+ * @param string $name значение атрибута name поля формы
+ * @param array $formData данные из формы переданные пользователем
  * 
  * @return string
  */
-function validateUrl(string $name): string {
-    if (empty($_POST[$name])) {
+function validateUrl(string $name, array $formData): string {
+    if (empty($formData[$name])) {
         return '';
     }
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
@@ -291,14 +293,15 @@ function validateUrl(string $name): string {
  * Проверяет корректность введенного URL и существование видео по указанной ссылке
  *
  * @param string $name значение атрибута name поля формы
+ * @param array $formData данные из формы переданные пользователем
  * 
  * @return string
  */
-function validateYoutubeUrl(string $name): string {
+function validateYoutubeUrl(string $name, array $formData): string {
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_URL)) {
         return 'Введите корректную ссылку из интернета';
     }
-    if ($error = check_youtube_url($_POST[$name])) {
+    if ($error = check_youtube_url($formData[$name])) {
        if ($error === true) {
            return '';
        } else {
@@ -312,15 +315,16 @@ function validateYoutubeUrl(string $name): string {
  * Проверяет введен один или более хештегов, проверяет начинается хештег с #, если нет возвращает текст ошибки
  *
  * @param string $name значение атрибута name поля формы
+ * @param array $formData данные из формы переданные пользователем
  * 
  * @return string
  */
-function validateHashtag(string $name): string {
+function validateHashtag(string $name, array $formData): string {
     if (empty($_POST[$name])) {
         return '';
     }
 
-    if(!preg_match_all('/#[^#\s]+/', $_POST[$name])) {
+    if(!preg_match_all('/#[^#\s]+/', $formData[$name])) {
         return 'Введите корректный хештег(и)';
     }
     return '';
@@ -329,12 +333,14 @@ function validateHashtag(string $name): string {
 /**
  * Проверяет тип и размер загруженного файла, если некорректный возвращает текст ошибки
  * 
+ * @param array $file данные файла переданного пользователем
+ * 
  * @return string
  */
-function validateImage(): string {
+function validateImage($file): string {
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $fileName = $_FILES['userpic-file-photo']['tmp_name'];
-    $fileSize = $_FILES['userpic-file-photo']['size'];
+    $fileName = $file['tmp_name'];
+    $fileSize = $file['size'];
 
     $fileType = finfo_file($finfo, $fileName);
 
@@ -351,12 +357,27 @@ function validateImage(): string {
 /**
  * Осуществляет валидацию данных из формы
  * 
+ * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
+ * @param array $required массив в котором значения - значение атрибута name поля формы
+ * @param string $postType тип поста
+ * 
  * @return array
  */
-function validateForm($rules, $required) {
+function validateForm(array $rules, array $required, string $postType) {
     $errors = [];
+    $filterRules = [];
 
-    foreach ($_POST as $key => $value) {
+    foreach ($rules as $key => $value) {
+        $type = explode('-', $key)[0];
+        
+        if ($postType === $type) {
+            $filterRules[$key] = 'FILTER_DEFAULT';
+        }
+    }
+
+    $post = filter_input_array(INPUT_POST, $filterRules);
+
+    foreach ($post as $key => $value) {
         if (isset($rules[$key])) {
             $rule = $rules[$key];
             $errors[$key] = $rule();
@@ -405,52 +426,47 @@ function getPostValue($name): string {
 /**
  * Перемещает файл из временного хранилища в публичную папку проекта
  * 
- * @return void
+ * @param string $tmpPath путь к временному хранилищу загруженного файла
+ * @param string $path путь к публичной папке uploads проекта
+ * 
+ * @return string текст ошибки или пустую строку
  */
-function moveLoadedFile(): void {
-    $ext = explode('/', $_FILES['userpic-file-photo']['type']);
-    $file = uniqid() . '.' . $ext[1];
-    $path = __DIR__ . '/uploads/' . $file;
-    global $filePath;
-    $filePath = $file;
+function moveLoadedFile(string $tmpPath, string $path): string {
 
-    move_uploaded_file($_FILES['userpic-file-photo']['tmp_name'], $path);
+    if (move_uploaded_file($tmpPath, $path)) {
+        return 'Ошибка перемещения файла в публичную папку проекта';
+    }
+    return '';
 }
 
 /**
  * Скачивает файл по ссылке и помещает в публичную папку проекта
  * 
- * @return string
+ * @param string $link ссылка из интернета на скачиваемый файл
+ * @param string $path путь к публичной папке uploads проекта
+ * 
+ * @return string текст ошибки или пустую строку
  */
-function downloadImageFile(): string {
-    $link = $_POST['photo-url'];
-    $error = '';
-    
-    if(@!$fileContent = file_get_contents($link)) {
+function downloadImageFile(string $link, string $path): string {
+
+    if(!$fileContent = file_get_contents($link)) {
         return 'Ошибка загрузки файла по сети';
     }
-    preg_match('/jpeg|jpg|png|gif/', $link, $match);
-    $ext = $match[0];
-    $dir = __DIR__ . '/uploads/';
-    $file = uniqid() . '.' . $ext;
-    $path = $dir . $file;
-    global $filePath;
-    $filePath = $file;
-
-    file_put_contents($path, $fileContent);
-
+    if (!file_put_contents($path, $fileContent)) {
+        return 'Ошибка перемещения файла в публичную папку проекта';
+    }
     return '';
 }
 
 /**
  * Разбивает строку тегов на отдельные слова 
  * 
- * @param string $tagIndex ключ 
+ * @param string $tags строка с тегами
  * 
  * @return array
  */
-function getTags($tagIndex): array {
-    preg_match_all('/#[^#\s]+/', $_POST[$tagIndex], $match);
+function getTags($tags): array {
+    preg_match_all('/#[^#\s]+/', $tags, $match);
     $tags = $match[0];
 
     return $tags;
