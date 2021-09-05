@@ -130,7 +130,7 @@ function insertTagsToDatabase(object $con, array $tags): void {
     $query = 'INSERT INTO hashtags(hashtag) VALUE (?)';
 
     $stmt = mysqli_prepare($con, $query);
-    foreach ($tags as $key => $tag) {
+    foreach ($tags as $tag) {
         mysqli_stmt_bind_param($stmt, 's', $tag);
         mysqli_stmt_execute($stmt);
     }
@@ -172,13 +172,14 @@ function insertPostToDatabase(object $con, string $postType, string $filePath, a
          mysqli_stmt_bind_param($stmt, 'ss', $title, $content);
     }
     
-    if(@!mysqli_stmt_execute($stmt)) {
+    if(!mysqli_stmt_execute($stmt)) {
         echo 'Ошибка загрузки поста в базу данных ' . mysqli_error($con);
         die;
     }
 
     $postId = mysqli_insert_id($con);
     header('Location: post.php?post_id=' . $postId, true, 302);
+    die;
 }
 
 /**
@@ -366,24 +367,35 @@ function validateImage($file): string {
 function validateForm(array $rules, array $required, string $postType) {
     $errors = [];
     $filterRules = [];
+    $req = [];
 
     foreach ($rules as $key => $value) {
         $type = explode('-', $key)[0];
-        
+
         if ($postType === $type) {
-            $filterRules[$key] = 'FILTER_DEFAULT';
+            $filterRules[$key] = FILTER_DEFAULT;
         }
     }
 
-    $post = filter_input_array(INPUT_POST, $filterRules);
+    foreach ($required as $key) {
+        $type = explode('-', $key)[0];
+
+        if ($postType === $type) {
+            $req[] = $key;
+        }
+    }
+
+    $post = filter_input_array(INPUT_POST, $filterRules, true);
 
     foreach ($post as $key => $value) {
         if (isset($rules[$key])) {
             $rule = $rules[$key];
             $errors[$key] = $rule();
         }
+    }
 
-        if (in_array($key, $required) && empty($value)) {
+    foreach ($req as $key) {
+        if (empty($post[$key])) {
             $errors[$key] = 'Поле должно быть заполнено';
         }
     }
