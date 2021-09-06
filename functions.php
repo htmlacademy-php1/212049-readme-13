@@ -132,7 +132,11 @@ function insertTagsToDatabase(object $con, array $tags): void {
     $stmt = mysqli_prepare($con, $query);
     foreach ($tags as $tag) {
         mysqli_stmt_bind_param($stmt, 's', $tag);
-        mysqli_stmt_execute($stmt);
+
+        if(!mysqli_stmt_execute($stmt)) {
+            echo 'Ошибка загрузки данных в базу данных ' . mysqli_error($con);
+            die;
+        }
     }
 }
 
@@ -148,6 +152,7 @@ function insertTagsToDatabase(object $con, array $tags): void {
  */
 function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): void {
     list($title, $content, $quote_author) = array_values($formData);
+    $postQuery = '';
     $queries = [
         'photo' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", ?, "", "", 10, 1, 1);',
         'video' => 'INSERT INTO posts(title, content, quote_author, image, video, link, num_of_views, user_id, content_type_id) VALUE (?, "", "anonymous", "", ?, "", 11, 1, 2);',
