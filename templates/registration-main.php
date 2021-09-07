@@ -14,7 +14,7 @@
           ">
             <label class="registration__label form__label" for="registration-email">Электронная почта <span class="form__input-required">*</span></label>
             <div class="form__input-section">
-              <input class="registration__input form__input" id="registration-email" type="email" name="email" placeholder="Укажите эл.почту" value="<?=getPostValue('email');?>">
+              <input class="registration__input form__input" id="registration-email" type="email" name="email" placeholder="Укажите эл.почту" value="<?=htmlspecialchars(getPostValue('email'));?>">
               <button class="form__error-button button" type="button">!<span class="visually-hidden">Информация об ошибке</span></button>
               <div class="form__error-text">
                 <h3 class="form__error-title">Заголовок сообщения</h3>
@@ -31,7 +31,7 @@
           ">
             <label class="registration__label form__label" for="registration-login">Логин <span class="form__input-required">*</span></label>
             <div class="form__input-section">
-              <input class="registration__input form__input" id="registration-login" type="text" name="login" placeholder="Укажите логин" value="<?=getPostValue('login');?>">
+              <input class="registration__input form__input" id="registration-login" type="text" name="login" placeholder="Укажите логин" value="<?=htmlspecialchars(getPostValue('login'));?>">
               <button class="form__error-button button" type="button">!<span class="visually-hidden">Информация об ошибке</span></button>
               <div class="form__error-text">
                 <h3 class="form__error-title">Заголовок сообщения</h3>

@@ -516,10 +516,10 @@ function getTags($tags): array {
  * @return string
  */
 function checkEmail($con, $newEmail): string {
-    $error = '';
-    $query = 'SELECT email FROM users;';
+    $query = 'SELECT email FROM users WHERE email = ?';
 
     $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $newEmail);
     mysqli_stmt_execute($stmt);
     $res = mysqli_stmt_get_result($stmt);
 
@@ -527,14 +527,11 @@ function checkEmail($con, $newEmail): string {
         die('Ошибка получения данных: ' . mysqli_error($con));
     }
 
-    $emails = mysqli_fetch_all($res);
-
-    foreach ($emails as $key => $email) {
-        if ($newEmail === $email[0]) {
-            $error = 'Такой email уже существует в базе данных';
-        } 
+    if(mysqli_fetch_assoc($res)) {
+        return 'Такой email уже существует в базе данных';
     }
-    return $error;
+
+    return '';
 }
 
 /**
@@ -573,13 +570,13 @@ function validateRegForm(array $rules, array $required): array {
  *
  * @param mysqli Object $con Обьект mysqli
  * @param string $avatar путь к файлу сохраненному в публичной папке проекта uploads
- * @param string $passwordHash хэш пользовательского пароля
  * @param array $formData данные из формы переданные пользователем
  * 
  * @return void
  */
-function insertUsersDataToDatabase($con, $avatar, $passwordHash, $formData): void {
+function insertUsersDataToDatabase($con, $avatar, $formData): void {
     list($email, $login,,) = array_values($formData);
+    $passwordHash = password_hash($formData['password'], PASSWORD_DEFAULT);
     $query = 'INSERT INTO users(email, login, password, avatar) VALUE(?, ?, ?, ?);';
     $stmt = mysqli_prepare($con, $query);
     mysqli_stmt_bind_param($stmt, 'ssss', $email, $login, $passwordHash, $avatar);

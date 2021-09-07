@@ -20,6 +20,8 @@ $rules = [
 $required = ['email', 'login', 'password', 'password-repeat'];
 $errors = [];
 $modErrors = [];
+$password = $_POST['password'] ?? '';
+$passwordRepeat = $_POST['password-repeat'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$errors = validateRegForm($rules, $required);
@@ -29,11 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$errors['email'] = checkEmail($con, $_POST['email']);
 	}
 
-	if ($_POST['password'] !== $_POST['password-repeat']) {
+	if ($password !== $passwordRepeat) {
 		$errors['password'] = 'Пароли не совпадают';
 	}
 
-	if ($_FILES['userpic-file']['name']) {
+	if (!empty($_FILES['userpic-file']['name'])) {
 		if($type = mime_content_type($_FILES['userpic-file']['tmp_name'])) {
 			$ext = explode('/', $type)[1];
             $fileName = uniqid() . '.' . $ext;
@@ -50,8 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$modErrors = modifyErrors($errors, $keys);
 
 	if (!$errors) {
-		$passwordHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-		insertUsersDataToDatabase($con, $filePath, $passwordHash, $_POST);
+		insertUsersDataToDatabase($con, $filePath, $_POST);
 	}
 }
 
