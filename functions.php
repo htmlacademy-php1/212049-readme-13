@@ -373,13 +373,13 @@ function validateEmail(string $name, array $formData): string {
         return '';
     }
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_EMAIL)) {
-        return 'Введите корректную email';
+        return 'Введите корректный email';
     }
     return '';
 }
 
 /**
- * Осуществляет валидацию данных из формы
+ * Осуществляет валидацию данных из формы загрузки поста
  * 
  * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
  * @param array $required массив в котором значения - значение атрибута name поля формы
@@ -387,7 +387,7 @@ function validateEmail(string $name, array $formData): string {
  * 
  * @return array
  */
-function validateForm(array $rules, array $required, string $postType) {
+function validatePostForm(array $rules, array $required, string $postType) {
     $errors = [];
     $filterRules = [];
     $req = [];
@@ -418,6 +418,37 @@ function validateForm(array $rules, array $required, string $postType) {
     }
 
     foreach ($req as $key) {
+        if (empty($post[$key])) {
+            $errors[$key] = 'Поле должно быть заполнено';
+        }
+    }
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+/**
+ * Осуществляет валидацию данных из формы регистрации/входа
+ * 
+ * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
+ * @param array $required массив в котором значения - значение атрибута name поля формы
+ * 
+ * @return array
+ */
+function validateForm(array $rules, array $required) {
+    foreach ($rules as $key => $value) {
+        $filterRules[$key] = FILTER_DEFAULT;
+    }
+    $post = filter_input_array(INPUT_POST, $filterRules, true);
+
+    foreach ($post as $key => $value) {
+        if (isset($rules[$key])) {
+            $rule = $rules[$key];
+            $errors[$key] = $rule();
+        }
+    }
+
+    foreach ($required as $key) {
         if (empty($post[$key])) {
             $errors[$key] = 'Поле должно быть заполнено';
         }
@@ -527,42 +558,11 @@ function checkEmail($con, $newEmail): string {
         die('Ошибка получения данных: ' . mysqli_error($con));
     }
 
-    if(mysqli_fetch_assoc($res)) {
+    if (mysqli_fetch_assoc($res)) {
         return 'Такой email уже существует в базе данных';
     }
 
     return '';
-}
-
-/**
- * Осуществляет валидацию данных формы регистрации
- * 
- * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
- * @param array $required массив в котором значения - значение атрибута name поля формы
- * 
- * @return array
- */
-function validateRegForm(array $rules, array $required): array {
-    foreach ($rules as $key => $value) {
-        $filterRules[$key] = FILTER_DEFAULT;
-    }
-    $post = filter_input_array(INPUT_POST, $filterRules, true);
-
-    foreach ($post as $key => $value) {
-        if (isset($rules[$key])) {
-            $rule = $rules[$key];
-            $errors[$key] = $rule();
-        }
-    }
-
-    foreach ($required as $key) {
-        if (empty($post[$key])) {
-            $errors[$key] = 'Поле должно быть заполнено';
-        }
-    }
-
-    $errors = array_filter($errors);
-    return $errors;
 }
 
 /**
@@ -589,3 +589,62 @@ function insertUsersDataToDatabase($con, $avatar, $formData): void {
     header('Location: index.php', true, 302);
     die;
 }
+
+/**
+ * Проверяет что переданный пароль является корректным
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param array $formData данные из формы переданные пользователем
+ * 
+ * @return string идентификатор пользователя
+ */
+function checkPassword($con, $formData): bool {
+    $query = 'SELECT password FROM users WHERE email = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $formData['login']);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $passwordHash = mysqli_fetch_assoc($res)['password'];
+
+    if (password_verify($formData['password'], $passwordHash)) {
+        $query = 'SELECT id FROM users WHERE email = ?';
+
+        $stmt = mysqli_prepare($con, $query);
+        mysqli_stmt_bind_param($stmt, 's', $formData['login']);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+
+        if (!$res) {
+            die('Ошибка получения данных: ' . mysqli_error($con));
+        }
+
+        $userId = mysqli_fetch_assoc($res)['id'];
+
+        return $userId;
+    }
+
+    return '';
+}
+
+function getUser($con, $userId) {
+    $query = 'SELECT * FROM users WHERE id = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $user = mysqli_fetch_assoc($res);
+    return $user;
+}
+

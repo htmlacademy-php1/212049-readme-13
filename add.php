@@ -67,7 +67,7 @@ $keys = [
 $con = mysqliConnect();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $errors = validateForm($rules, $required, $postType);
+    $errors = validatePostForm($rules, $required, $postType);
 
     if (isset($_FILES['userpic-file-photo']) && isset($_POST)) {
         if ($_FILES['userpic-file-photo']['error'] && empty($_POST['photo-url'])) {

@@ -24,7 +24,7 @@ $password = $_POST['password'] ?? '';
 $passwordRepeat = $_POST['password-repeat'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	$errors = validateRegForm($rules, $required);
+	$errors = validateForm($rules, $required);
 	$con = mysqliConnect();
 
 	if (!isset($errors['email'])) {
