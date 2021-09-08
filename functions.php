@@ -361,6 +361,24 @@ function validateImage($file): string {
 }
 
 /**
+ * Проверяет корректность email
+ *
+ * @param string $name значение атрибута name поля формы
+ * @param array $formData данные из формы переданные пользователем
+ * 
+ * @return string
+ */
+function validateEmail(string $name, array $formData): string {
+    if (empty($formData[$name])) {
+        return '';
+    }
+    if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_EMAIL)) {
+        return 'Введите корректную email';
+    }
+    return '';
+}
+
+/**
  * Осуществляет валидацию данных из формы
  * 
  * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
@@ -487,4 +505,87 @@ function getTags($tags): array {
     $tags = $match[0];
 
     return $tags;
+}
+
+/**
+ * Проверяет что указанный email уже не используется другим пользователем
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $email указанный email
+ * 
+ * @return string
+ */
+function checkEmail($con, $newEmail): string {
+    $query = 'SELECT email FROM users WHERE email = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $newEmail);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    if(mysqli_fetch_assoc($res)) {
+        return 'Такой email уже существует в базе данных';
+    }
+
+    return '';
+}
+
+/**
+ * Осуществляет валидацию данных формы регистрации
+ * 
+ * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
+ * @param array $required массив в котором значения - значение атрибута name поля формы
+ * 
+ * @return array
+ */
+function validateRegForm(array $rules, array $required): array {
+    foreach ($rules as $key => $value) {
+        $filterRules[$key] = FILTER_DEFAULT;
+    }
+    $post = filter_input_array(INPUT_POST, $filterRules, true);
+
+    foreach ($post as $key => $value) {
+        if (isset($rules[$key])) {
+            $rule = $rules[$key];
+            $errors[$key] = $rule();
+        }
+    }
+
+    foreach ($required as $key) {
+        if (empty($post[$key])) {
+            $errors[$key] = 'Поле должно быть заполнено';
+        }
+    }
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+/**
+ * Вставляет данные переданные из формы в таблицу users БД readme
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $avatar путь к файлу сохраненному в публичной папке проекта uploads
+ * @param array $formData данные из формы переданные пользователем
+ * 
+ * @return void
+ */
+function insertUsersDataToDatabase($con, $avatar, $formData): void {
+    list($email, $login,,) = array_values($formData);
+    $passwordHash = password_hash($formData['password'], PASSWORD_DEFAULT);
+    $query = 'INSERT INTO users(email, login, password, avatar) VALUE(?, ?, ?, ?);';
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ssss', $email, $login, $passwordHash, $avatar);
+
+    if(!mysqli_stmt_execute($stmt)) {
+        echo 'Ошибка загрузки данных поста в базу данных ' . mysqli_error($con);
+        die;
+    }
+
+    header('Location: index.php', true, 302);
+    die;
 }
