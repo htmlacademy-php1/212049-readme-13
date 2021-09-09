@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!$_SESSION) {
+if (!$_SESSION['user']) {
 	header('Location: index.php', true, 302);
 	die;
 }
@@ -11,8 +11,6 @@ require_once 'functions.php';
 
 date_default_timezone_set('Europe/Moscow');
 
-$isAuth = rand(0, 1);
-$userName = 'Yuriy'; // укажите здесь ваше имя
 define('MINUTE', 60);
 define('HOUR', 60 * MINUTE);
 define('DAY', 24 * HOUR);
@@ -27,6 +25,5 @@ $posts = getPosts($type_id, $cardsOnPageAll, $con);
 
 $pageContent = include_template('popular-main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll]);
 
-$layoutContent = include_template('popular-layout.php', ['content' => $pageContent, 'isAuth' => $isAuth, 'userName' => 'Yuriy', 'title' => 'readme: популярное']);
-
+$layoutContent = include_template('popular-layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: популярное']);
 print($layoutContent);

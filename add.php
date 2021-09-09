@@ -1,9 +1,14 @@
 <?php
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header('Location: index.php', true, 302);
+    die;
+}
+
 require_once 'helpers.php';
 require_once 'functions.php';
 
-$isAuth = rand(0, 1);
-$userName = 'Yuriy'; // укажите здесь ваше имя
 $postType = $_GET['postType'] ?? 'photo';
 $tagIndex = $postType . '-' . 'tag';
 $blockContentPath = 'adding-post-' . $postType . '.php';
@@ -113,5 +118,5 @@ $postTypes = getPostTypes($con);
 
 $blockContent = include_template($blockContentPath, ['errors' => $errors, 'modErrors' => $modErrors]);
 $pageContent = include_template('adding-post-main.php', ['blockContent' => $blockContent, 'postTypes' => $postTypes, 'postType' => $postType]);
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'isAuth' => $isAuth, 'userName' => 'Yuriy', 'title' => 'readme: добавить публикацию']);
+$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: добавить публикацию']);
 print($layoutContent);

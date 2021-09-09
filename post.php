@@ -1,4 +1,11 @@
 <?php
+session_start();
+
+if (!$_SESSION['user']) {
+	header('Location: index.php', true, 302);
+	die;
+}
+
 require_once 'helpers.php';
 require_once 'functions.php';
 
@@ -7,8 +14,6 @@ if (!isset($_GET['post_id'])) {
 	exit();
 }
 
-$isAuth = rand(0, 1);
-$userName = 'Yuriy'; 
 $postId = (int) $_GET['post_id'];
 
 $con = mysqliConnect();
@@ -17,5 +22,5 @@ $post = getPost($postId, $con);
 $pathBlock = 'post-' . $post['post_type'] . '.php';
 $blockContent = include_template($pathBlock, ['post' => $post]);
 $pageContent = include_template('post-main.php', ['blockContent' => $blockContent, 'post' => $post]);
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'isAuth' => $isAuth, 'userName' => 'Yuriy', 'title' => 'readme: публикация']);
+$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: публикация']);
 print($layoutContent);

@@ -57,5 +57,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $mainContent = include_template('registration-main.php', ['errors' => $errors, 'modErrors' => $modErrors]);
-$layout = include_template('registration-layout.php', ['mainContent' => $mainContent]);
+$layout = include_template('registration-layout.php', ['mainContent' => $mainContent, 'title' => 'readme: регистрация']);
 print($layout);

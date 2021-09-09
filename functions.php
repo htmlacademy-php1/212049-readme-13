@@ -343,7 +343,7 @@ function validateHashtag(string $name, array $formData): string {
  * 
  * @return string
  */
-function validateImage($file): string {
+function validateImage(array $file): string {
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $fileName = $file['tmp_name'];
     $fileSize = $file['size'];
@@ -387,7 +387,7 @@ function validateEmail(string $name, array $formData): string {
  * 
  * @return array
  */
-function validatePostForm(array $rules, array $required, string $postType) {
+function validatePostForm(array $rules, array $required, string $postType): array {
     $errors = [];
     $filterRules = [];
     $req = [];
@@ -435,7 +435,7 @@ function validatePostForm(array $rules, array $required, string $postType) {
  * 
  * @return array
  */
-function validateForm(array $rules, array $required) {
+function validateForm(array $rules, array $required): array {
     foreach ($rules as $key => $value) {
         $filterRules[$key] = FILTER_DEFAULT;
     }
@@ -485,7 +485,7 @@ function modifyErrors(array $errors, array $keys): array {
  * 
  * @return string
  */
-function getPostValue($name): string {
+function getPostValue(string $name): string {
     return $_POST[$name] ?? '';
 }
 
@@ -531,7 +531,7 @@ function downloadImageFile(string $link, string $path): string {
  * 
  * @return array
  */
-function getTags($tags): array {
+function getTags(string $tags): array {
     preg_match_all('/#[^#\s]+/', $tags, $match);
     $tags = $match[0];
 
@@ -546,7 +546,7 @@ function getTags($tags): array {
  * 
  * @return string
  */
-function checkEmail($con, $newEmail): string {
+function checkEmail(object $con, string $newEmail): string {
     $query = 'SELECT email FROM users WHERE email = ?';
 
     $stmt = mysqli_prepare($con, $query);
@@ -574,7 +574,7 @@ function checkEmail($con, $newEmail): string {
  * 
  * @return void
  */
-function insertUsersDataToDatabase($con, $avatar, $formData): void {
+function insertUsersDataToDatabase(object $con, string $avatar, array $formData): void {
     list($email, $login,,) = array_values($formData);
     $passwordHash = password_hash($formData['password'], PASSWORD_DEFAULT);
     $query = 'INSERT INTO users(email, login, password, avatar) VALUE(?, ?, ?, ?);';
@@ -598,7 +598,7 @@ function insertUsersDataToDatabase($con, $avatar, $formData): void {
  * 
  * @return string идентификатор пользователя
  */
-function checkPassword($con, $formData): bool {
+function checkPassword(object $con, array $formData): bool {
     $query = 'SELECT password FROM users WHERE email = ?';
 
     $stmt = mysqli_prepare($con, $query);
@@ -632,7 +632,15 @@ function checkPassword($con, $formData): bool {
     return '';
 }
 
-function getUser($con, $userId) {
+/**
+ * Возвращает данные пользователя по user id
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор запрашиваемого пользователя 
+ * 
+ * @return array
+ */
+function getUser(object $con, string $userId): array {
     $query = 'SELECT * FROM users WHERE id = ?';
 
     $stmt = mysqli_prepare($con, $query);
@@ -648,3 +656,60 @@ function getUser($con, $userId) {
     return $user;
 }
 
+/**
+ * Возвращает подписки пользователя
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор пользователя 
+ * 
+ * @return array
+ */
+function getSubscriptions(object $con, string $userId): array {
+    $query = 'SELECT subscription_id FROM subscriptions WHERE user_id = ' .$userId;
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $subscriptions = mysqli_fetch_all($res, MYSQLI_ASSOC);
+    return $subscriptions;
+}
+
+/**
+ * Возвращает посты пользователей на кого оформлена подписка
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param array $subscriptions подписки 
+ * 
+ * @return array
+ */
+function getSubPosts(object $con, array $subscriptions): array {
+    $str = '';
+
+    foreach ($subscriptions as $subscription) {
+        $str .= $subscription['subscription_id'] . ', ';
+    }
+
+    $str = rtrim($str, ', ');
+    $query = 'SELECT posts.*, content_types.class_name AS type, users.avatar, users.login FROM posts' .
+                ' RIGHT JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' RIGHT JOIN users ON users.id = posts.user_id' .
+                ' WHERE user_id IN (' . $str . ')' .
+                ' ORDER BY created_at DESC' ;
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+   
+    return $posts;
+}

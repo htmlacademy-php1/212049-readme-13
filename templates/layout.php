@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?></title>
+    <title><?=$title?></title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body class="page">
@@ -22,10 +22,10 @@
                 micro blogging
             </p>
         </div>
-        <form class="header__search-form form" action="#" method="get">
+        <form class="header__search-form form" action="search.php" method="get">
             <div class="header__search">
                 <label class="visually-hidden">Поиск</label>
-                <input class="header__search-input form__input" type="search">
+                <input class="header__search-input form__input" type="search" name="search">
                 <button class="header__search-button button" type="submit">
                     <svg class="header__search-icon" width="18" height="18">
                         <use xlink:href="#icon-search"></use>
@@ -57,11 +57,11 @@
                     <li class="header__profile">
                         <a class="header__profile-link" href="#">
                             <div class="header__avatar-wrapper">
-                                <img class="header__profile-avatar" src="img/<?=$user['avatar']?>" alt="Аватар профиля">
+                                <img class="header__profile-avatar" src="img/<?=$user['user']['avatar']?>" alt="Аватар профиля">
                             </div>
                             <div class="header__profile-name">
                                 <span>
-                                    <?= htmlspecialchars($user['login']) ?>
+                                    <?= htmlspecialchars($user['user']['login']) ?>
                                 </span>
                                 <svg class="header__link-arrow" width="10" height="6">
                                     <use xlink:href="#icon-arrow-right-ad"></use>

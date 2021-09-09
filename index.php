@@ -12,11 +12,6 @@ $required = ['login', 'password'];
 $errors = [];
 $userId = '';
 
-if (isset($_SESSION)) {
-	header('Location: feed.php', true, 302);
-	die;
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$errors = validateForm($rules, $required);
 	$con = mysqliConnect();
@@ -25,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		if (checkEmail($con, $_POST['login'])) {
 			if ($userId = checkPassword($con, $_POST)) {
 				session_start();
-				$_SESSION = getUser($con, $userId);
+				$_SESSION['user'] = getUser($con, $userId);
 				header('Location: feed.php', true, 302);
 				die;
 			} else {
@@ -37,5 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	}
 }
 
-$layout = include_template('main.php', ['errors' => $errors]);
+session_start();
+
+if (isset($_SESSION['user'])) {
+	header('Location: feed.php', true, 302);
+	die;
+}
+
+$layout = include_template('main.php', ['errors' => $errors, 'title' => 'readme: блог, каким он должен быть']);
 print($layout);

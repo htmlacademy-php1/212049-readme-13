@@ -40,17 +40,17 @@
                     <?php if($cardsOnPageAll): ?>
                         filters__button--active
                     <?php endif; ?>
-                    " href="index.php?cardsOnPageAll=true">
+                    " href="popular.php?cardsOnPageAll=true">
                         <span>Все</span>
                     </a>
                 </li>
                 <?php foreach ($types as $type): ?>
                     <li class="popular__filters-item filters__item">
                         <a class="filters__button filters__button--<?= $type['class_name'] ?> button 
-                            <?php if($type_id === $type['id']): ?>
+                            <?php if($type_id == $type['id']): ?>
                                 filters__button--active
                             <?php endif; ?>
-                            " href="index.php?type_id=<?=$type['id']?>">
+                            " href="popular.php?type_id=<?=$type['id']?>">
                             <span class="visually-hidden"><?= $type['type'] ?></span>
                             <svg class="filters__icon" width="<?= $type['width'] ?>" height="<?= $type['height'] ?>">
                                 <use xlink:href="#icon-filter-<?= $type['class_name'] ?>"></use>
