@@ -24,7 +24,7 @@ $password = $_POST['password'] ?? '';
 $passwordRepeat = $_POST['password-repeat'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	$errors = validateRegForm($rules, $required);
+	$errors = validateForm($rules, $required);
 	$con = mysqliConnect();
 
 	if (!isset($errors['email'])) {
@@ -57,5 +57,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $mainContent = include_template('registration-main.php', ['errors' => $errors, 'modErrors' => $modErrors]);
-$layout = include_template('registration-layout.php', ['mainContent' => $mainContent]);
+$layout = include_template('registration-layout.php', ['mainContent' => $mainContent, 'title' => 'readme: регистрация']);
 print($layout);

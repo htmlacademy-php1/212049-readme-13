@@ -1,25 +1,42 @@
 <?php
+session_start();
+
+if (isset($_SESSION['user'])) {
+	header('Location: feed.php', true, 302);
+	die;
+}
+
 require_once 'helpers.php';
 require_once 'functions.php';
 
-date_default_timezone_set('Europe/Moscow');
+$rules = [
+	'login' => function() {
+		return validateEmail('login', $_POST);
+	},
+	'password' => function() {},
+];
+$required = ['login', 'password'];
+$errors = [];
+$userId = '';
 
-$isAuth = rand(0, 1);
-$userName = 'Yuriy'; // укажите здесь ваше имя
-define('MINUTE', 60);
-define('HOUR', 60 * MINUTE);
-define('DAY', 24 * HOUR);
-define('WEEK', 7 * DAY);
-define('FIVEWEEKS', 5 * WEEK);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	$errors = validateForm($rules, $required);
+	$con = mysqliConnect();
 
-$cardsOnPageAll = isset($_GET['cardsOnPageAll']);
-$type_id = isset($_GET['type_id']) ? $_GET['type_id'] : 0;
-$con = mysqliConnect();
-$types = getPostTypes($con);
-$posts = getPosts($type_id, $cardsOnPageAll, $con);
+	if (!$errors) {
+		if (checkEmail($con, $_POST['login'])) {
+			if ($userId = checkPassword($con, $_POST)) {
+				$_SESSION['user'] = getUser($con, $userId);
+				header('Location: feed.php', true, 302);
+				die;
+			} else {
+				$errors['password'] = 'Неверный пароль';
+			}
+		} else {
+			$errors['login'] = 'Вы ввели несуществующий логин';
+		}
+	}
+}
 
-$pageContent = include_template('main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll]);
-
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'isAuth' => $isAuth, 'userName' => 'Yuriy', 'title' => 'readme: популярное']);
-
-print($layoutContent);
+$layout = include_template('main.php', ['errors' => $errors, 'title' => 'readme: блог, каким он должен быть']);
+print($layout);

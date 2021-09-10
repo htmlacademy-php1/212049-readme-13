@@ -343,7 +343,7 @@ function validateHashtag(string $name, array $formData): string {
  * 
  * @return string
  */
-function validateImage($file): string {
+function validateImage(array $file): string {
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $fileName = $file['tmp_name'];
     $fileSize = $file['size'];
@@ -373,13 +373,13 @@ function validateEmail(string $name, array $formData): string {
         return '';
     }
     if (!filter_input(INPUT_POST, $name, FILTER_VALIDATE_EMAIL)) {
-        return 'Введите корректную email';
+        return 'Введите корректный email';
     }
     return '';
 }
 
 /**
- * Осуществляет валидацию данных из формы
+ * Осуществляет валидацию данных из формы загрузки поста
  * 
  * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
  * @param array $required массив в котором значения - значение атрибута name поля формы
@@ -387,7 +387,7 @@ function validateEmail(string $name, array $formData): string {
  * 
  * @return array
  */
-function validateForm(array $rules, array $required, string $postType) {
+function validatePostForm(array $rules, array $required, string $postType): array {
     $errors = [];
     $filterRules = [];
     $req = [];
@@ -428,6 +428,37 @@ function validateForm(array $rules, array $required, string $postType) {
 }
 
 /**
+ * Осуществляет валидацию данных из формы регистрации/входа
+ * 
+ * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
+ * @param array $required массив в котором значения - значение атрибута name поля формы
+ * 
+ * @return array
+ */
+function validateForm(array $rules, array $required): array {
+    foreach ($rules as $key => $value) {
+        $filterRules[$key] = FILTER_DEFAULT;
+    }
+    $post = filter_input_array(INPUT_POST, $filterRules, true);
+
+    foreach ($post as $key => $value) {
+        if (isset($rules[$key])) {
+            $rule = $rules[$key];
+            $errors[$key] = $rule();
+        }
+    }
+
+    foreach ($required as $key) {
+        if (empty($post[$key])) {
+            $errors[$key] = 'Поле должно быть заполнено';
+        }
+    }
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+/**
  * Меняет ключи из массива $errors на значения из массива $keys
  *
  * @param array $errors массив с ошибками после валидации данных из формы
@@ -454,7 +485,7 @@ function modifyErrors(array $errors, array $keys): array {
  * 
  * @return string
  */
-function getPostValue($name): string {
+function getPostValue(string $name): string {
     return $_POST[$name] ?? '';
 }
 
@@ -500,7 +531,7 @@ function downloadImageFile(string $link, string $path): string {
  * 
  * @return array
  */
-function getTags($tags): array {
+function getTags(string $tags): array {
     preg_match_all('/#[^#\s]+/', $tags, $match);
     $tags = $match[0];
 
@@ -515,7 +546,7 @@ function getTags($tags): array {
  * 
  * @return string
  */
-function checkEmail($con, $newEmail): string {
+function checkEmail(object $con, string $newEmail): string {
     $query = 'SELECT email FROM users WHERE email = ?';
 
     $stmt = mysqli_prepare($con, $query);
@@ -527,42 +558,11 @@ function checkEmail($con, $newEmail): string {
         die('Ошибка получения данных: ' . mysqli_error($con));
     }
 
-    if(mysqli_fetch_assoc($res)) {
+    if (mysqli_fetch_assoc($res)) {
         return 'Такой email уже существует в базе данных';
     }
 
     return '';
-}
-
-/**
- * Осуществляет валидацию данных формы регистрации
- * 
- * @param array $rules массив в котором ключи - значение атрибута name поля формы, значения - callback
- * @param array $required массив в котором значения - значение атрибута name поля формы
- * 
- * @return array
- */
-function validateRegForm(array $rules, array $required): array {
-    foreach ($rules as $key => $value) {
-        $filterRules[$key] = FILTER_DEFAULT;
-    }
-    $post = filter_input_array(INPUT_POST, $filterRules, true);
-
-    foreach ($post as $key => $value) {
-        if (isset($rules[$key])) {
-            $rule = $rules[$key];
-            $errors[$key] = $rule();
-        }
-    }
-
-    foreach ($required as $key) {
-        if (empty($post[$key])) {
-            $errors[$key] = 'Поле должно быть заполнено';
-        }
-    }
-
-    $errors = array_filter($errors);
-    return $errors;
 }
 
 /**
@@ -574,7 +574,7 @@ function validateRegForm(array $rules, array $required): array {
  * 
  * @return void
  */
-function insertUsersDataToDatabase($con, $avatar, $formData): void {
+function insertUsersDataToDatabase(object $con, string $avatar, array $formData): void {
     list($email, $login,,) = array_values($formData);
     $passwordHash = password_hash($formData['password'], PASSWORD_DEFAULT);
     $query = 'INSERT INTO users(email, login, password, avatar) VALUE(?, ?, ?, ?);';
@@ -588,4 +588,132 @@ function insertUsersDataToDatabase($con, $avatar, $formData): void {
 
     header('Location: index.php', true, 302);
     die;
+}
+
+/**
+ * Проверяет что переданный пароль является корректным
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param array $formData данные из формы переданные пользователем
+ * 
+ * @return string идентификатор пользователя
+ */
+function checkPassword(object $con, array $formData): bool {
+    $query = 'SELECT password FROM users WHERE email = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $formData['login']);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $passwordHash = mysqli_fetch_assoc($res)['password'];
+
+    if (password_verify($formData['password'], $passwordHash)) {
+        $query = 'SELECT id FROM users WHERE email = ?';
+
+        $stmt = mysqli_prepare($con, $query);
+        mysqli_stmt_bind_param($stmt, 's', $formData['login']);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+
+        if (!$res) {
+            die('Ошибка получения данных: ' . mysqli_error($con));
+        }
+
+        $userId = mysqli_fetch_assoc($res)['id'];
+
+        return $userId;
+    }
+
+    return '';
+}
+
+/**
+ * Возвращает данные пользователя по user id
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор запрашиваемого пользователя 
+ * 
+ * @return array
+ */
+function getUser(object $con, string $userId): array {
+    $query = 'SELECT * FROM users WHERE id = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $user = mysqli_fetch_assoc($res);
+    return $user;
+}
+
+/**
+ * Возвращает подписки пользователя
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор пользователя 
+ * 
+ * @return array
+ */
+function getSubscriptions(object $con, string $userId): array {
+    $query = 'SELECT subscription_id FROM subscriptions WHERE user_id = ?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $subscriptions = mysqli_fetch_all($res, MYSQLI_ASSOC);
+    return array_column($subscriptions, 'subscription_id');
+}
+
+/**
+ * Возвращает посты пользователей на кого оформлена подписка
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param array $subscriptions подписки 
+ * 
+ * @return array
+ */
+function getSubPosts(object $con, array $subscriptions): array {
+    if (!$subscriptions) {
+       return array();
+    }
+    $str = '';
+
+    foreach ($subscriptions as $sub) {
+        $str .= $sub . ', ';
+    }
+
+    $str = rtrim($str, ', ');
+    $query = 'SELECT posts.*, content_types.class_name AS type, users.avatar, users.login FROM posts' .
+                ' RIGHT JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' RIGHT JOIN users ON users.id = posts.user_id' .
+                ' WHERE user_id IN (' . $str . ')' .
+                ' ORDER BY created_at DESC' ;
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+   
+    return $posts;
 }

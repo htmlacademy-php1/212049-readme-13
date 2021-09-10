@@ -90,6 +90,7 @@ INSERT INTO likes VALUES
 
 -- Подписаться на пользователя
 INSERT INTO subscriptions VALUES (1, 2);
+INSERT INTO subscriptions VALUES (1, 3);
 
 -- Добавляем три комментария
 INSERT INTO comments
