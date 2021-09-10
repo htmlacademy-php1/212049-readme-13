@@ -118,5 +118,5 @@ $postTypes = getPostTypes($con);
 
 $blockContent = include_template($blockContentPath, ['errors' => $errors, 'modErrors' => $modErrors]);
 $pageContent = include_template('adding-post-main.php', ['blockContent' => $blockContent, 'postTypes' => $postTypes, 'postType' => $postType]);
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: добавить публикацию']);
+$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION['user'], 'title' => 'readme: добавить публикацию']);
 print($layoutContent);

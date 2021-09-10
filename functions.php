@@ -665,9 +665,10 @@ function getUser(object $con, string $userId): array {
  * @return array
  */
 function getSubscriptions(object $con, string $userId): array {
-    $query = 'SELECT subscription_id FROM subscriptions WHERE user_id = ' .$userId;
+    $query = 'SELECT subscription_id FROM subscriptions WHERE user_id = ?';
 
     $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $userId);
     mysqli_stmt_execute($stmt);
     $res = mysqli_stmt_get_result($stmt);
 
@@ -676,7 +677,7 @@ function getSubscriptions(object $con, string $userId): array {
     }
 
     $subscriptions = mysqli_fetch_all($res, MYSQLI_ASSOC);
-    return $subscriptions;
+    return array_column($subscriptions, 'subscription_id');
 }
 
 /**
@@ -688,10 +689,13 @@ function getSubscriptions(object $con, string $userId): array {
  * @return array
  */
 function getSubPosts(object $con, array $subscriptions): array {
+    if (!$subscriptions) {
+       return array();
+    }
     $str = '';
 
-    foreach ($subscriptions as $subscription) {
-        $str .= $subscription['subscription_id'] . ', ';
+    foreach ($subscriptions as $sub) {
+        $str .= $sub . ', ';
     }
 
     $str = rtrim($str, ', ');

@@ -25,5 +25,5 @@ $posts = getPosts($type_id, $cardsOnPageAll, $con);
 
 $pageContent = include_template('popular-main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll]);
 
-$layoutContent = include_template('popular-layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: популярное']);
+$layoutContent = include_template('popular-layout.php', ['content' => $pageContent, 'user' => $_SESSION['user'], 'title' => 'readme: популярное']);
 print($layoutContent);

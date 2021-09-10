@@ -32,5 +32,5 @@ foreach ($subPosts as $post) {
 	
 }
 $mainContent = include_template('feed-main.php', ['contents' => $blockContents, 'types' => $types, 'cardsOnPageAll' => $cardsOnPageAll, 'type_id' => $type_id]);
-$layoutContent = include_template('feed-layout.php', ['mainContent' => $mainContent, 'user' => $_SESSION, 'title' => 'readme: моя лента']);
+$layoutContent = include_template('feed-layout.php', ['mainContent' => $mainContent, 'user' => $_SESSION['user'], 'title' => 'readme: моя лента']);
 print($layoutContent);

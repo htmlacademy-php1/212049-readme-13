@@ -1,4 +1,11 @@
 <?php
+session_start();
+
+if (isset($_SESSION['user'])) {
+	header('Location: feed.php', true, 302);
+	die;
+}
+
 require_once 'helpers.php';
 require_once 'functions.php';
 
@@ -19,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (!$errors) {
 		if (checkEmail($con, $_POST['login'])) {
 			if ($userId = checkPassword($con, $_POST)) {
-				session_start();
 				$_SESSION['user'] = getUser($con, $userId);
 				header('Location: feed.php', true, 302);
 				die;
@@ -30,13 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$errors['login'] = 'Вы ввели несуществующий логин';
 		}
 	}
-}
-
-session_start();
-
-if (isset($_SESSION['user'])) {
-	header('Location: feed.php', true, 302);
-	die;
 }
 
 $layout = include_template('main.php', ['errors' => $errors, 'title' => 'readme: блог, каким он должен быть']);

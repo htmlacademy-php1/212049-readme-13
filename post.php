@@ -22,5 +22,5 @@ $post = getPost($postId, $con);
 $pathBlock = 'post-' . $post['post_type'] . '.php';
 $blockContent = include_template($pathBlock, ['post' => $post]);
 $pageContent = include_template('post-main.php', ['blockContent' => $blockContent, 'post' => $post]);
-$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION, 'title' => 'readme: публикация']);
+$layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION['user'], 'title' => 'readme: публикация']);
 print($layoutContent);
