@@ -6,7 +6,7 @@
       </div>
       <div class="post__info">
         <b class="post__author-name"><?=htmlspecialchars($post['login'])?></b>
-        <span class="post__time"><?= getModDate($post['created_at'])['rel'] ?></span>
+        <span class="post__time"><?=getModDate($post['created_at'])['rel']?></span>
       </div>
     </a>
   </header>

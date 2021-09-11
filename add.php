@@ -104,12 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $tags = getTags($_POST[$tagIndex]);
-        insertTagsToDatabase($con, $tags);
         if ($postType === 'video') {
             $filePath = $_POST['video-url'];
         }
         insertPostToDatabase($con, $postType, $filePath, $_POST);
+        $postId = mysqli_insert_id($con);
+        $tags = getTags($_POST[$tagIndex]);
+        insertTagsToDatabase($con, $tags, $postId);
     }
     
     $modErrors = modifyErrors($errors, $keys); 

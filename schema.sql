@@ -23,7 +23,7 @@ CREATE TABLE content_types (
 
 CREATE TABLE hashtags (
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	hashtag VARCHAR(128)
+	hashtag VARCHAR(128) UNIQUE
 );
 
 CREATE TABLE posts (
@@ -86,3 +86,5 @@ CREATE TABLE hashtags_posts (
 	FOREIGN KEY (hashtag_id)  REFERENCES hashtags (id),
 	FOREIGN KEY (post_id)  REFERENCES posts (id)
 );
+
+CREATE FULLTEXT INDEX post_search ON posts(title, content);

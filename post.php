@@ -18,9 +18,10 @@ $postId = (int) $_GET['post_id'];
 
 $con = mysqliConnect();
 $post = getPost($postId, $con);
+$tags = getTagsFromDB($con, $postId);
 
 $pathBlock = 'post-' . $post['post_type'] . '.php';
 $blockContent = include_template($pathBlock, ['post' => $post]);
-$pageContent = include_template('post-main.php', ['blockContent' => $blockContent, 'post' => $post]);
+$pageContent = include_template('post-main.php', ['blockContent' => $blockContent, 'post' => $post, 'tags' => $tags]);
 $layoutContent = include_template('layout.php', ['content' => $pageContent, 'user' => $_SESSION['user'], 'title' => 'readme: публикация']);
 print($layoutContent);

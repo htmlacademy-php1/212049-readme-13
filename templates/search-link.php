@@ -1,4 +1,4 @@
-<article class="feed__post post post-text">
+<article class="search__post post post-link">
   <header class="post__header post__author">
     <a class="post__author-link" href="#" title="Автор">
       <div class="post__avatar-wrapper">
@@ -6,21 +6,25 @@
       </div>
       <div class="post__info">
         <b class="post__author-name"><?=htmlspecialchars($post['login'])?></b>
-        <span class="post__time"><?= getModDate($post['created_at'])['rel'] ?></span>
+        <span class="post__time"><?=getModDate($post['created_at'])['rel']?></span>
       </div>
     </a>
   </header>
   <div class="post__main">
-    <h2><a href="post.php"><?=htmlspecialchars($post['title'])?></a></h2>
-    <p>
-      <?php 
-          list($text, $isTruncated) = truncateText($post['content']);
-          echo htmlspecialchars($text);
-          if ($isTruncated): 
-      ?>
-      <a class="post-text__more-link" href="#">Читать далее</a>
-      <?php endif; ?>
-    </p>
+    <div class="post-link__wrapper">
+      <a class="post-link__external" href="http://www.vitadental.ru" title="Перейти по ссылке">
+        <div class="post-link__icon-wrapper">
+          <img src="img/logo-vita.jpg" alt="Иконка">
+        </div>
+        <div class="post-link__info">
+          <h3><?=htmlspecialchars($post['title'])?></h3>
+          <span><?=htmlspecialchars($post['link'])?></span>
+        </div>
+        <svg class="post-link__arrow" width="11" height="16">
+          <use xlink:href="#icon-arrow-right-ad"></use>
+        </svg>
+      </a>
+    </div>
   </div>
   <footer class="post__footer post__indicators">
     <div class="post__buttons">
@@ -40,13 +44,6 @@
         </svg>
         <span>25</span>
         <span class="visually-hidden">количество комментариев</span>
-      </a>
-      <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
-        <svg class="post__indicator-icon" width="19" height="17">
-          <use xlink:href="#icon-repost"></use>
-        </svg>
-        <span>5</span>
-        <span class="visually-hidden">количество репостов</span>
       </a>
     </div>
   </footer>
