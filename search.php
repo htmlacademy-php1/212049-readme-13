@@ -1,14 +1,15 @@
 <?php
 session_start();
 
-if (!$_SESSION['user']) {
+if (!isset($_SESSION['user'])) {
 	header('Location: index.php', true, 302);
 	die;
 }
 
+require_once 'helpers.php';
+require_once 'functions.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-	require_once 'helpers.php';
-	require_once 'functions.php';
 	define('MINUTE', 60);
 	define('HOUR', 60 * MINUTE);
 	define('DAY', 24 * HOUR);

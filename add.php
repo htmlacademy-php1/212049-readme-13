@@ -107,8 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($postType === 'video') {
             $filePath = $_POST['video-url'];
         }
-        insertPostToDatabase($con, $postType, $filePath, $_POST);
-        $postId = mysqli_insert_id($con);
+        $postId = insertPostToDatabase($con, $postType, $filePath, $_POST);
         $tags = getTags($_POST[$tagIndex]);
         insertTagsToDatabase($con, $tags, $postId);
     }

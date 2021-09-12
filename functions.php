@@ -127,7 +127,7 @@ function getPostTypes(object $con): array {
  * 
  * @return void
  */
-function insertTagsToDatabase(object $con, array $tags, string $postId): void {
+function insertTagsToDatabase(object $con, array $tags, int $postId): void {
     $query = 'INSERT INTO hashtags(hashtag) VALUE (?)';
 
     $stmt = mysqli_prepare($con, $query);
@@ -141,7 +141,6 @@ function insertTagsToDatabase(object $con, array $tags, string $postId): void {
 
         $tagId = mysqli_insert_id($con);
         $tagId = intval($tagId);
-        $postId = intval($postId);
         insertToHashtagsPosts($con, $tagId, $postId);
         
         header('Location: post.php?post_id=' . $postId, true, 302);
@@ -170,7 +169,15 @@ function insertToHashtagsPosts(object $con, int $tagId, int $postId): void {
     }
 }
 
-function getTagsFromDB($con, $postId) {
+/**
+ * Получает данные (теги) из БД которые относятся к конкретному посту ($postId)
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param int $postId идентификатор поста
+ * 
+ * @return array
+ */
+function getTagsFromDB(object $con, int $postId): array {
     $query = 'SELECT hashtag FROM hashtags WHERE id IN(SELECT hashtag_id FROM hashtags_posts WHERE post_id=?)';
 
     $stmt = mysqli_prepare($con, $query);
@@ -196,9 +203,9 @@ function getTagsFromDB($con, $postId) {
  * @param string $filePath путь к файлу сохраненному в публичной папке проекта uploads
  * @param array $formData данные из формы переданные пользователем
  * 
- * @return void
+ * @return int
  */
-function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): void {
+function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): int {
     list($title, $content, $quote_author) = array_values($formData);
     $postQuery = '';
     $queries = [
@@ -229,6 +236,9 @@ function insertPostToDatabase(object $con, string $postType, string $filePath, a
         echo 'Ошибка загрузки поста в базу данных ' . mysqli_error($con);
         die;
     }
+    $postId = mysqli_insert_id($con);
+
+    return $postId;
 }
 
 /**

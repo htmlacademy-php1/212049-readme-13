@@ -5,7 +5,7 @@
       <h2 class="visually-hidden">Публикация</h2>
       <div class="post-details__wrapper post-<?=htmlspecialchars($post['class_name'])?>">
         <div class="post-details__main-block post post--details">
-          <?= $blockContent ?>
+          <?=$blockContent?>
           <div class="post__indicators">
             <div class="post__buttons">
               <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
@@ -37,7 +37,7 @@
           </div>
           <ul class="post__tags">
             <?php foreach($tags as $tag): ?>
-              <li><a href="search.php?search=<?=trim($tag, '#')?>"><?=$tag?></a></li>
+              <li><a href="search.php?search=<?=trim($tag, '#')?>"><?=htmlspecialchars($tag)?></a></li>
             <?php endforeach; ?>
           </ul>
           <div class="comments">
