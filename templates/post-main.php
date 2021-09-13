@@ -5,7 +5,7 @@
       <h2 class="visually-hidden">Публикация</h2>
       <div class="post-details__wrapper post-<?=htmlspecialchars($post['class_name'])?>">
         <div class="post-details__main-block post post--details">
-          <?= $blockContent ?>
+          <?=$blockContent?>
           <div class="post__indicators">
             <div class="post__buttons">
               <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
@@ -36,12 +36,9 @@
             <span class="post__view"><?=$post['num_of_views']?> просмотров</span>
           </div>
           <ul class="post__tags">
-            <li><a href="#">#nature</a></li>
-            <li><a href="#">#globe</a></li>
-            <li><a href="#">#photooftheday</a></li>
-            <li><a href="#">#canon</a></li>
-            <li><a href="#">#landscape</a></li>
-            <li><a href="#">#щикарныйвид</a></li>
+            <?php foreach($tags as $tag): ?>
+              <li><a href="search.php?search=<?=trim($tag, '#')?>"><?=htmlspecialchars($tag)?></a></li>
+            <?php endforeach; ?>
           </ul>
           <div class="comments">
             <form class="comments__form form" action="#" method="post">

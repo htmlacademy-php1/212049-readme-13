@@ -123,10 +123,11 @@ function getPostTypes(object $con): array {
  *
  * @param mysqli Object $con Обьект mysqli
  * @param array $tags простой массив значения которого теги переданные через форму публикации поста
+ * @param string $postId id последнего загруженного в БД поста
  * 
  * @return void
  */
-function insertTagsToDatabase(object $con, array $tags): void {
+function insertTagsToDatabase(object $con, array $tags, int $postId): void {
     $query = 'INSERT INTO hashtags(hashtag) VALUE (?)';
 
     $stmt = mysqli_prepare($con, $query);
@@ -137,7 +138,61 @@ function insertTagsToDatabase(object $con, array $tags): void {
             echo 'Ошибка загрузки данных в базу данных ' . mysqli_error($con);
             die;
         }
+
+        $tagId = mysqli_insert_id($con);
+        $tagId = intval($tagId);
+        insertToHashtagsPosts($con, $tagId, $postId);
+        
+        header('Location: post.php?post_id=' . $postId, true, 302);
+        die;
     }
+}
+
+/**
+ * Вставляет данные в таблицу hashtags_posts БД readme
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param int $tagId идентификато последнего тега загруженного в БД
+ * @param int $postId идентификато последнего поста загруженного в БД
+ * 
+ * @return void
+ */
+function insertToHashtagsPosts(object $con, int $tagId, int $postId): void {
+     $queryRel = 'INSERT INTO hashtags_posts(hashtag_id, post_id) VALUE (?, ?)';
+
+    $stmt = mysqli_prepare($con, $queryRel);
+    mysqli_stmt_bind_param($stmt, 'ii', $tagId, $postId);
+
+    if(!mysqli_stmt_execute($stmt)) {
+        echo 'Ошибка загрузки данных в базу данных ' . mysqli_error($con);
+        die;
+    }
+}
+
+/**
+ * Получает данные (теги) из БД которые относятся к конкретному посту ($postId)
+ *
+ * @param mysqli Object $con Обьект mysqli
+ * @param int $postId идентификатор поста
+ * 
+ * @return array
+ */
+function getTagsFromDB(object $con, int $postId): array {
+    $query = 'SELECT hashtag FROM hashtags WHERE id IN(SELECT hashtag_id FROM hashtags_posts WHERE post_id=?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $postId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $tags = mysqli_fetch_all($res, MYSQLI_ASSOC);
+    $tags = array_column($tags, 'hashtag');
+
+    return $tags;
 }
 
 /**
@@ -148,9 +203,9 @@ function insertTagsToDatabase(object $con, array $tags): void {
  * @param string $filePath путь к файлу сохраненному в публичной папке проекта uploads
  * @param array $formData данные из формы переданные пользователем
  * 
- * @return void
+ * @return int
  */
-function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): void {
+function insertPostToDatabase(object $con, string $postType, string $filePath, array $formData): int {
     list($title, $content, $quote_author) = array_values($formData);
     $postQuery = '';
     $queries = [
@@ -181,10 +236,9 @@ function insertPostToDatabase(object $con, string $postType, string $filePath, a
         echo 'Ошибка загрузки поста в базу данных ' . mysqli_error($con);
         die;
     }
-
     $postId = mysqli_insert_id($con);
-    header('Location: post.php?post_id=' . $postId, true, 302);
-    die;
+
+    return $postId;
 }
 
 /**
@@ -490,6 +544,17 @@ function getPostValue(string $name): string {
 }
 
 /**
+ * Возвращает значение по ключу $name из массива $_GET
+ *
+ * @param string $name значение атрибута name поля формы
+ * 
+ * @return string
+ */
+function getPostValueGET(string $name): string {
+    return $_GET[$name] ?? '';
+}
+
+/**
  * Перемещает файл из временного хранилища в публичную папку проекта
  * 
  * @param string $tmpPath путь к временному хранилищу загруженного файла
@@ -715,5 +780,37 @@ function getSubPosts(object $con, array $subscriptions): array {
 
     $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
    
+    return $posts;
+}
+
+/**
+ * Получает посты из БД по запросу 
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $searchQuery строка запроса
+ * 
+ * @return array
+ */
+function searchPosts(object $con, string $searchQuery): array {
+    if (substr($searchQuery, 0, 1) === '#') {
+        $searchQuery = substr($searchQuery, 1);
+        echo $searchQuery;
+    }
+    $query = 'SELECT posts.*, content_types.class_name AS type, users.login, users.avatar FROM posts' .
+                ' RIGHT JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' RIGHT JOIN users ON users.id = posts.user_id' .
+                ' WHERE MATCH(title, content) AGAINST(?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 's', $searchQuery);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+            die('Ошибка получения данных: ' . mysqli_error($con));
+        }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+
     return $posts;
 }

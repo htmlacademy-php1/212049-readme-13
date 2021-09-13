@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!$_SESSION['user']) {
+if (!isset($_SESSION['user'])) {
 	header('Location: index.php', true, 302);
 	die;
 }
@@ -15,6 +15,7 @@ define('DAY', 24 * HOUR);
 define('WEEK', 7 * DAY);
 define('FIVEWEEKS', 5 * WEEK);
 $blockContents = [];
+$searchQuery = $_GET['search'] ?? '';
 
 $con = mysqliConnect();
 $sub = getSubscriptions($con, $_SESSION['user']['id']);
@@ -32,5 +33,5 @@ foreach ($subPosts as $post) {
 	
 }
 $mainContent = include_template('feed-main.php', ['contents' => $blockContents, 'types' => $types, 'cardsOnPageAll' => $cardsOnPageAll, 'type_id' => $type_id]);
-$layoutContent = include_template('feed-layout.php', ['mainContent' => $mainContent, 'user' => $_SESSION['user'], 'title' => 'readme: моя лента']);
+$layoutContent = include_template('feed-layout.php', ['mainContent' => $mainContent, 'user' => $_SESSION['user'], 'searchQuery' => $searchQuery, 'title' => 'readme: моя лента']);
 print($layoutContent);
