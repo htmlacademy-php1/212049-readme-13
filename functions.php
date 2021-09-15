@@ -814,3 +814,137 @@ function searchPosts(object $con, string $searchQuery): array {
 
     return $posts;
 }
+
+/**
+ * Возвращает все посты конкретного пользователя из базы данных
+ *
+ * @param int $userId идентификатор пользователя
+ * @param mysqli Object $con Обьект mysqli
+ * 
+ * @return array
+ */
+function getProfilePosts(object $con, int $userId) {
+    $query = 'SELECT * FROM posts' .
+                ' LEFT JOIN hashtags_posts hashtags_posts ON posts.id = hashtags_posts.post_id' .
+                ' LEFT JOIN hashtags ON hashtags_posts.hashtag_id = hashtags.id' .
+                ' LEFT JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' WHERE user_id=?';
+
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+     if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+
+    for ($i=0; $i < count($posts); $i++) {
+        $counter = 0;
+
+        for ($j=0; $j < count($posts); $j++) { 
+            if (@$posts[$i]['post_id'] === @$posts[$j]['post_id']) {
+                $counter ++;
+
+                if ($counter > 1) {
+                    if (is_array($posts[$i]['hashtag'])) {
+                        array_push($posts[$i]['hashtag'], $posts[$j]['hashtag']);
+                    } else {
+                        $posts[$i]['hashtag'] = [$posts[$i]['hashtag'], $posts[$j]['hashtag']];
+                    }
+                    unset($posts[$j]);
+                }
+            }
+        }
+    }
+
+    return $posts;
+}
+
+/**
+ * Возвращает данные пользователя для профайла по user id
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор запрашиваемого пользователя 
+ * 
+ * @return array
+ */
+function getProfileUser(object $con, string $userId): array {
+    $query = 'SELECT users.*,' .
+                ' (SELECT COUNT(id) FROM posts WHERE user_id=?) AS posts,' .
+                ' (SELECT COUNT(user_id) FROM subscriptions WHERE subscription_id=?) AS subscriptions' .
+                ' FROM users' .
+                ' WHERE id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'iii', $userId, $userId, $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $user = mysqli_fetch_assoc($res);
+    return $user;
+}
+
+function getSubscriptionInfo(object $con, int $profileUser): bool {
+    $query = 'SELECT user_id FROM subscriptions WHERE subscription_id=' . $profileUser;
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function getUserExistsInfo(object $con, int $profileUserId): bool {
+    $query = 'SELECT id FROM users WHERE id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $profileUserId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function subscribe(object $con, int $userId, int $profileUserId): void {
+    $query = 'INSERT INTO subscriptions(user_id, subscription_id) VALUE(?,?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $profileUserId);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function unsubscribe(object $con, int $userId, int $profileUserId): void {
+    echo $userId . '<br>';
+    echo $profileUserId . '<br>';
+    $query = 'DELETE FROM subscriptions WHERE user_id=? AND subscription_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $profileUserId);
+
+     if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
