@@ -23,7 +23,7 @@ $con = mysqliConnect();
 $types = getPostTypes($con);
 $posts = getPosts($type_id, $cardsOnPageAll, $con);
 
-$pageContent = include_template('popular-main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll]);
+$pageContent = include_template('popular-main.php', ['posts' => $posts, 'types' => $types, 'type_id' => $type_id, 'cardsOnPageAll' => $cardsOnPageAll, 'user' => $_SESSION['user']]);
 
 $layoutContent = include_template('popular-layout.php', ['content' => $pageContent, 'user' => $_SESSION['user'], 'title' => 'readme: популярное']);
 print($layoutContent);

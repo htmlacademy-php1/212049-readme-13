@@ -305,9 +305,12 @@ function getPosts(int $type_id, bool $cardsOnPageAll, object $con): array {
  * 
  * @return array
  */
-function getPost(int $post_id, object $con): array {
-    $query_post = 'SELECT posts.*, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
-                '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count' . 
+function getPost(object $con, int $post_id): array {
+    $query_post = 'SELECT posts.*, users.id, users.login AS author, users.avatar, content_types.class_name AS post_type,' .
+                '(SELECT COUNT(likes.post_id) FROM likes WHERE likes.post_id = posts.id) AS likes_count,' .
+                ' (SELECT COUNT(posts.id) FROM posts WHERE posts.user_id=users.id) AS post_count,' .
+                ' (SELECT COUNT(subscriptions.user_id) FROM subscriptions WHERE subscription_id=posts.user_id) AS subscription_count,' .
+                ' (SELECT COUNT(comments.id) FROM comments WHERE comments.user_id=users.id) AS comments_count' .
                 ' FROM posts' .
                 ' JOIN users ON posts.user_id = users.id' .
                 ' JOIN content_types ON posts.content_type_id = content_types.id' .
@@ -813,4 +816,252 @@ function searchPosts(object $con, string $searchQuery): array {
     $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
 
     return $posts;
+}
+
+/**
+ * Возвращает все посты конкретного пользователя из базы данных
+ *
+ * @param int $userId идентификатор пользователя
+ * @param mysqli Object $con Обьект mysqli
+ * 
+ * @return array
+ */
+function getProfilePosts(object $con, int $userId) {
+    $query = 'SELECT * FROM posts' .
+                ' LEFT JOIN hashtags_posts hashtags_posts ON posts.id = hashtags_posts.post_id' .
+                ' LEFT JOIN hashtags ON hashtags_posts.hashtag_id = hashtags.id' .
+                ' LEFT JOIN content_types ON posts.content_type_id = content_types.id' .
+                ' WHERE user_id=?';
+
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+     if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $posts = mysqli_fetch_all($res, MYSQLI_ASSOC);
+
+    for ($i=0; $i < count($posts); $i++) {
+        $counter = 0;
+
+        for ($j=0; $j < count($posts); $j++) { 
+            if (@$posts[$i]['post_id'] === @$posts[$j]['post_id']) {
+                $counter ++;
+
+                if ($counter > 1) {
+                    if (is_array($posts[$i]['hashtag'])) {
+                        array_push($posts[$i]['hashtag'], $posts[$j]['hashtag']);
+                    } else {
+                        $posts[$i]['hashtag'] = [$posts[$i]['hashtag'], $posts[$j]['hashtag']];
+                    }
+                    unset($posts[$j]);
+                }
+            }
+        }
+    }
+
+    return $posts;
+}
+
+/**
+ * Возвращает данные пользователя для профайла по user id
+ * 
+ * @param mysqli Object $con Обьект mysqli
+ * @param string $userId идентификатор запрашиваемого пользователя 
+ * 
+ * @return array
+ */
+function getProfileUser(object $con, string $userId): array {
+    $query = 'SELECT users.*,' .
+                ' (SELECT COUNT(id) FROM posts WHERE user_id=?) AS posts,' .
+                ' (SELECT COUNT(user_id) FROM subscriptions WHERE subscription_id=?) AS subscriptions' .
+                ' FROM users' .
+                ' WHERE id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'iii', $userId, $userId, $userId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $user = mysqli_fetch_assoc($res);
+    return $user;
+}
+
+function getSubscriptionInfo(object $con, int $userId, int $subUserId): bool {
+    $query = 'SELECT user_id FROM subscriptions WHERE user_id=? AND subscription_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $subUserId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function getUserExistsInfo(object $con, int $profileUserId): bool {
+    $query = 'SELECT id FROM users WHERE id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $profileUserId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function subscribe(object $con, int $userId, int $profileUserId): void {
+    $query = 'INSERT INTO subscriptions(user_id, subscription_id) VALUE(?,?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $profileUserId);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function unsubscribe(object $con, int $userId, int $profileUserId): void {
+    echo $userId . '<br>';
+    echo $profileUserId . '<br>';
+    $query = 'DELETE FROM subscriptions WHERE user_id=? AND subscription_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $profileUserId);
+
+     if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function getIsLikedInfo(object $con, int $userId, int $postId): bool{
+     $query = 'SELECT user_id FROM likes WHERE post_id=? AND user_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $postId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function getPostExistsInfo(object $con, int $postId): bool {
+    $query = 'SELECT id FROM posts WHERE id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $postId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function like(object $con, int $userId, int $postId) {
+    $query = 'INSERT INTO likes(user_id, post_id) VALUE(?,?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $postId);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function unlike(object $con, int $userId, int $postId) {
+    $query = 'DELETE FROM likes WHERE user_id=? AND post_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $postId);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function getPostLikedInfo(object $con, int $userId, int $postId): bool {
+    $query = 'SELECT user_id FROM likes WHERE user_id=? AND post_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'ii', $userId, $postId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_row($res);
+   
+    return (bool)$res;
+}
+
+function checkTextLength(string $name): string {
+    if(strlen($_POST[$name]) < 4) {
+        return 'Длина текста должна быть не менее 4-х символов';
+    }
+    return '';
+}
+
+function addComment(object $con, string $comment, int $userId, int $postId): void {
+    if ($userId === 0 || $postId === 0) {
+        die('Такого пользователя/поста не существует');
+    }
+    $query = 'INSERT INTO comments(comment, user_id, post_id) VALUE(?,?,?)';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'sii', $comment, $userId, $postId);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die('Ошибка записи данных: ' . mysqli_error($con));
+    }
+}
+
+function getComments(object $con, int $postId): array {
+    $query = 'SELECT comments.*, users.login, users.avatar FROM comments' . 
+                ' LEFT JOIN users ON comments.user_id=users.id' .
+                '  WHERE post_id=?';
+
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, 'i', $postId);
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+
+    if (!$res) {
+        die('Ошибка получения данных: ' . mysqli_error($con));
+    }
+
+    $res = mysqli_fetch_all($res, MYSQLI_ASSOC);
+   
+    return $res;
 }

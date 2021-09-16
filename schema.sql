@@ -42,9 +42,11 @@ CREATE TABLE posts (
 	FOREIGN KEY (content_type_id)  REFERENCES content_types (id)
 );
 
-CREATE INDEX title_index ON posts(title);
+CREATE FULLTEXT INDEX post_search ON posts(title, content);
 
-CREATE INDEX content_index ON posts(content(255));
+-- CREATE INDEX title_index ON posts(title);
+
+-- CREATE INDEX content_index ON posts(content(255));
 
 CREATE TABLE comments (
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,5 +88,3 @@ CREATE TABLE hashtags_posts (
 	FOREIGN KEY (hashtag_id)  REFERENCES hashtags (id),
 	FOREIGN KEY (post_id)  REFERENCES posts (id)
 );
-
-CREATE FULLTEXT INDEX post_search ON posts(title, content);
