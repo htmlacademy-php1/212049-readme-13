@@ -9,7 +9,7 @@
           </div>
           <div class="profile__name-wrapper user__name-wrapper">
             <span class="profile__name user__name"><?=$profileUser['login']?></span>
-            <time class="profile__user-time user__time" datetime="2014-03-20"><?=str_replace('назад', '', getModDate($profileUser['registed_at'])['rel'], );?> на сайте</time>
+            <time class="profile__user-time user__time" datetime="2014-03-20"><?=str_replace('назад', '', getModDate($profileUser['registed_at'])['rel']);?> на сайте</time>
           </div>
         </div>
         <div class="profile__rating user__rating">
@@ -23,7 +23,7 @@
           </p>
         </div>
         <div class="profile__user-buttons user__buttons">
-          <a class="profile__user-button user__button user__button--subscription button button--main "href="subscription.php?isSubscribed=<?=$isSubscribed?>&profileUserId=<?=$profileUser['id']?>">
+          <a class="profile__user-button user__button user__button--subscription button button--main "href="subscription.php?isSubscribed=<?=$isSubscribed?>&subUserId=<?=$profileUser['id']?>">
             <?php if(!$isSubscribed): ?>
               Подписаться
             <?php else: ?>
@@ -58,4 +58,4 @@
       </div>
     </div>
   </div>
-</main>co
+</main>

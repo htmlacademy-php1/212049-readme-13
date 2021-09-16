@@ -9,15 +9,15 @@ require_once 'functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 	$con = mysqliConnect();
-	$isUserExsists = getUserExistsInfo($con, $_GET['profileUserId']);
+	$isUserExsists = getUserExistsInfo($con, $_GET['subUserId']);
 
 	if ($isUserExsists) {
 		if (!$_GET['isSubscribed']) {
-			subscribe($con, $_SESSION['user']['id'], $_GET['profileUserId']);
-			header('Location: profile.php?user_id=' . $_GET['profileUserId'], true, 302);
+			subscribe($con, $_SESSION['user']['id'], $_GET['subUserId']);
+			header('Location: profile.php?user_id=' . $_GET['subUserId'], true, 302);
 		} else {
-			unsubscribe($con, $_SESSION['user']['id'], $_GET['profileUserId']);
-			header('Location: profile.php?user_id=' . $_GET['profileUserId'], true, 302);
+			unsubscribe($con, $_SESSION['user']['id'], $_GET['subUserId']);
+			header('Location: profile.php?user_id=' . $_GET['subUserId'], true, 302);
 		}
 	}
 }

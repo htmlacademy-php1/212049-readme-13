@@ -9,10 +9,19 @@ require_once 'functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 	$con = mysqliConnect();
-	$isUserExsists = getUserExistsInfo($con, $_GET['userId']);
+	$postId = $_GET['postId'] ?? 0;
+	$userId = $_SESSION['user']['id'] ?? 0;
+	$path = basename($_SERVER['HTTP_REFERER']);
+	$isPostExsists = getPostExistsInfo($con, $postId);
+	$isPostLiked = getPostLikedInfo($con, $_SESSION['user']['id'], $postId);
 
-	if ($isUserExsists) {
-		like($con, $_SESSION['user']['id'], $_GET['profileUserId']);
-		header('Location: profile.php?user_id=' . $_GET['profileUserId'], true, 302);
+	if ($isPostExsists) {
+		if (!$isPostLiked) {
+			like($con, $userId, $postId);
+			header('Location: ' . $path, true, 302);
+		} else {
+			unlike($con, $userId, $postId);
+			header('Location: ' . $path, true, 302);
+		}
 	}
 }
